@@ -1,19 +1,25 @@
 <script>
-// import Hammer from 'hammerjs'
 import { ref } from 'vue';
 import interact from 'interactjs'
+import markdownit from 'markdown-it'
 export default {
   data() {
     return {
       cardData: {
         1: {
           id: 1,
+          x: 0,
+          y: 0,
+          content: '![logo](http://localhost:3000/logo.svg)'
+        },
+        2: {
+          id: 2,
           x: 100,
           y: 100,
           content: '这是一张卡片'
         },
-        2: {
-          id: 2,
+        3: {
+          id: 3,
           x: 200,
           y: 200,
           content: '这是第二张卡片'
@@ -22,7 +28,10 @@ export default {
     };
   },
   methods: {
-
+    markdown(content) {
+      const md = new markdownit();
+      return md.render(content)
+    }
   },
   mounted() {
     const pagePostion = ref({ x: 0, y: 0 })     // 当前页面的位置
@@ -40,74 +49,71 @@ export default {
     let onSelection = false
     let haveMoved = false
 
-    interact('body')
-    .styleCursor(false)
-    .draggable({
-      listeners: {
-        start (event) {
-          firstSelectionPostion.value.x = event.clientX
-          firstSelectionPostion.value.y = event.clientY
-          lastPagePostion.value.x = pagePostion.value.x
-          lastPagePostion.value.y = pagePostion.value.y
-          moveDelta.value.x = 0
-          moveDelta.value.y = 0
-        },
-        move (event) {
-          if (!onSelection && !haveMoved && event.dt >= 200) {
-            onSelection = true
-            selection.style.opacity = 1
+    interact('#app')
+      .styleCursor(false)
+      .draggable({
+        listeners: {
+          start(event) {
+            firstSelectionPostion.value.x = event.clientX
+            firstSelectionPostion.value.y = event.clientY
+            lastPagePostion.value.x = pagePostion.value.x
+            lastPagePostion.value.y = pagePostion.value.y
+            moveDelta.value.x = 0
+            moveDelta.value.y = 0
+          },
+          move(event) {
+            if (!onSelection && !haveMoved && event.dt >= 200) {
+              onSelection = true
+              selection.style.opacity = 1
+            }
+            haveMoved = true
+            if (!onSelection) {
+              moveDelta.value.x = event.clientX - event.x0
+              moveDelta.value.y = event.clientY - event.y0
+            } else {
+              const selectionLeft = event.clientX < firstSelectionPostion.value.x ? event.clientX : firstSelectionPostion.value.x
+              const selectionTop = event.clientY < firstSelectionPostion.value.y ? event.clientY : firstSelectionPostion.value.y
+              selection.style.left = selectionLeft + 'px'
+              selection.style.top = selectionTop + 'px'
+              selection.style.width = Math.abs(event.clientX - event.x0) + 'px'
+              selection.style.height = Math.abs(event.clientY - event.y0) + 'px'
+            }
+          },
+          end() {
+            onSelection = false
+            haveMoved = false
+            selection.style.opacity = 0
           }
-          haveMoved = true
-          if (!onSelection) {
-            moveDelta.value.x = event.clientX - event.x0
-            moveDelta.value.y = event.clientY - event.y0
-          } else {
-            const selectionLeft = event.clientX < firstSelectionPostion.value.x ? event.clientX : firstSelectionPostion.value.x
-            const selectionTop = event.clientY < firstSelectionPostion.value.y ? event.clientY : firstSelectionPostion.value.y
-            selection.style.left = selectionLeft + 'px'
-            selection.style.top = selectionTop + 'px'
-            selection.style.width = Math.abs(event.clientX - event.x0) + 'px'
-            selection.style.height = Math.abs(event.clientY - event.y0) + 'px'
-          }
-        },
-        end () {
-          onSelection = false
-          haveMoved = false
-          selection.style.opacity = 0
         }
-      }
-    })
+      })
 
     interact('.card')
-    .styleCursor(false)
-    .draggable({
-      hold: 200,
-      listeners: {
-        start (event) {
-          const dom = event.target.parentNode
-          moveCardIndex = dom.dataset.index
-          lastCardPostion.value.x = dom.dataset.x
-          lastCardPostion.value.y = dom.dataset.y
-          moveCardDelta.value.x = event.clientX - event.x0
-          moveCardDelta.value.y = event.clientY - event.y0
-          event.target.classList.add('animate-shake')
-        },
-        move (event) {
-          moveCardDelta.value.x = event.clientX - event.x0
-          moveCardDelta.value.y = event.clientY - event.y0
-        },
-        end (event) {
-          event.target.classList.remove('animate-shake')
+      .draggable({
+        allowFrom: '.move',
+        listeners: {
+          start(event) {
+            const dom = event.target
+            moveCardIndex = dom.dataset.index
+            lastCardPostion.value.x = dom.dataset.x
+            lastCardPostion.value.y = dom.dataset.y
+            moveCardDelta.value.x = event.clientX - event.x0
+            moveCardDelta.value.y = event.clientY - event.y0
+          },
+          move(event) {
+            moveCardDelta.value.x = event.clientX - event.x0
+            moveCardDelta.value.y = event.clientY - event.y0
+          },
         }
-      }
-    })
+      })
     const render = () => {
       // 缓动
       pagePostion.value.x = pagePostion.value.x + ((lastPagePostion.value.x - moveDelta.value.x) - pagePostion.value.x) * 0.1
       pagePostion.value.y = pagePostion.value.y + ((lastPagePostion.value.y - moveDelta.value.y) - pagePostion.value.y) * 0.1
       // 卡片
       this.$refs.cardRef.forEach((item, index) => {
-        item.style.transform = `translate3D(${-pagePostion.value.x + +item.dataset.x}px, ${-pagePostion.value.y + +item.dataset.y}px, 0)`
+        const x = -pagePostion.value.x + +item.dataset.x + document.body.clientWidth / 2 - item.clientWidth / 2 - 10
+        const y = -pagePostion.value.y + +item.dataset.y + document.body.clientHeight / 2 - item.clientHeight / 2 - 10
+        item.style.transform = `translate3D(${x}px, ${y}px, 0)`
       })
       if (moveCardIndex) {
         this.$refs.cardRef[moveCardIndex - 1].dataset.x = +lastCardPostion.value.x + moveCardDelta.value.x
@@ -142,12 +148,21 @@ export default {
       :data-index="index"
       :data-x="item.x"
       :data-y="item.y"
+      class="card absolute group border-10 border-transparent"
       ref="cardRef"
     >
-      <div class="card absolute rounded p-2 bg-sky-100 border-transparent border-2 hover:(border-black/20)">{{ item.content }}</div>
+      <p
+        class="move absolute rounded-t bg-black/20 w-full h-2.5 transition opacity-0 group-hover:opacity-100"
+      ></p>
+      <div
+        v-html="markdown(item.content)"
+        class="rounded p-2 bg-sky-100 border-transparent border-2 group-hover:(border-black/20)"
+      ></div>
     </div>
   </div>
-  <div class="selection absolute pointer-events-none w-10 h-10 bg-teal-200/20 border-teal-200 border-1 top-0 left-0"></div>
+  <div
+    class="selection absolute pointer-events-none w-10 h-10 bg-teal-200/20 border-teal-200 border-1 top-0 left-0"
+  ></div>
 </template>
 
 <style>
@@ -157,31 +172,5 @@ export default {
 }
 body {
   background: #fffdf1;
-}
-@keyframes shake-bottom {
-  0%,
-  100% {
-    transform: rotate(0deg);
-    transform-origin: 50% 100%;
-  }
-  10% {
-    transform: rotate(2deg);
-  }
-  20%,
-  40%,
-  60% {
-    transform: rotate(-4deg);
-  }
-  30%,
-  50%,
-  70% {
-    transform: rotate(4deg);
-  }
-  80% {
-    transform: rotate(-2deg);
-  }
-  90% {
-    transform: rotate(2deg);
-  }
 }
 </style>
