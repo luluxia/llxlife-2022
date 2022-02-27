@@ -10,6 +10,8 @@ export default {
           id: 1,
           x: 0,
           y: 0,
+          background: 'transparent',
+          onChoose: false,
           content: '![logo](http://localhost:3000/logo.svg)'
         },
         2: {
@@ -25,6 +27,8 @@ export default {
           content: '这是第二张卡片'
         }
       },
+      showCardList: [1, 2, 3],
+      onMove: false
     };
   },
   methods: {
@@ -38,16 +42,16 @@ export default {
     const lastPagePostion = ref({ x: 0, y: 0 }) // 上次页面的位置
     const moveDelta = ref({ x: 0, y: 0 })       // 每次移动时距离上次页面位置的偏移量
 
-    const lastCardPostion = ref({ x: 0, y: 0 }) // 上次卡片的位置
     const moveCardDelta = ref({ x: 0, y: 0 })   // 卡片移动偏移量
 
     const firstSelectionPostion = ref({ x: 0, y: 0 }) // 选框初始位置
 
-    let moveCardIndex = 0
-
     const selection = document.querySelector('.selection')
     let onSelection = false
     let haveMoved = false
+
+    const _this = this
+    let allCardDom = null
 
     interact('#app')
       .styleCursor(false)
@@ -65,6 +69,7 @@ export default {
             if (!onSelection && !haveMoved && event.dt >= 200) {
               onSelection = true
               selection.style.opacity = 1
+              allCardDom = document.querySelectorAll('.card')
             }
             haveMoved = true
             if (!onSelection) {
@@ -73,10 +78,26 @@ export default {
             } else {
               const selectionLeft = event.clientX < firstSelectionPostion.value.x ? event.clientX : firstSelectionPostion.value.x
               const selectionTop = event.clientY < firstSelectionPostion.value.y ? event.clientY : firstSelectionPostion.value.y
+              const selectionWidth = Math.abs(event.clientX - event.x0)
+              const selectionHeight = Math.abs(event.clientY - event.y0)
+              const selectionRight = selectionLeft + selectionWidth
+              const selectionBottom = selectionTop + selectionHeight
               selection.style.left = selectionLeft + 'px'
               selection.style.top = selectionTop + 'px'
-              selection.style.width = Math.abs(event.clientX - event.x0) + 'px'
-              selection.style.height = Math.abs(event.clientY - event.y0) + 'px'
+              selection.style.width = selectionWidth + 'px'
+              selection.style.height = selectionHeight + 'px'
+
+              allCardDom.forEach(card => {
+                const cardRect = card.getBoundingClientRect()
+                const cardId = card.dataset.id
+                if (cardRect.left > selectionLeft - cardRect.width && cardRect.right < selectionRight + cardRect.width && cardRect.top > selectionTop - cardRect.height && cardRect.bottom < selectionBottom + cardRect.height) {
+                  _this.cardData[cardId].onChoose = true
+                  _this.cardData[cardId].lastPositionX = card.dataset.x
+                  _this.cardData[cardId].lastPositionY = card.dataset.y
+                } else {
+                  _this.cardData[cardId].onChoose = false
+                }
+              })
             }
           },
           end() {
@@ -86,6 +107,11 @@ export default {
           }
         }
       })
+      .on('tap', () => {
+        Object.keys(this.cardData).forEach(id => {
+          this.cardData[id].onChoose = false
+        })
+      })
 
     interact('.card')
       .draggable({
@@ -93,16 +119,33 @@ export default {
         listeners: {
           start(event) {
             const dom = event.target
-            moveCardIndex = dom.dataset.index
-            lastCardPostion.value.x = dom.dataset.x
-            lastCardPostion.value.y = dom.dataset.y
+            const cardId = dom.dataset.id
+            _this.cardData[cardId].onChoose = true
+            _this.cardData[cardId].lastPositionX = dom.dataset.x
+            _this.cardData[cardId].lastPositionY = dom.dataset.y
+
             moveCardDelta.value.x = event.clientX - event.x0
             moveCardDelta.value.y = event.clientY - event.y0
+
+            _this.onMove = true
           },
           move(event) {
             moveCardDelta.value.x = event.clientX - event.x0
             moveCardDelta.value.y = event.clientY - event.y0
           },
+          end(event) {
+            const dom = event.target
+            const cardId = dom.dataset.id
+            _this.cardData[cardId].onChoose = false
+            _this.onMove = false
+
+            allCardDom = document.querySelectorAll('.card')
+            allCardDom.forEach(card => {
+              const cardId = card.dataset.id
+              _this.cardData[cardId].lastPositionX = card.dataset.x
+              _this.cardData[cardId].lastPositionY = card.dataset.y
+            })
+          }
         }
       })
     const render = () => {
@@ -111,14 +154,15 @@ export default {
       pagePostion.value.y = pagePostion.value.y + ((lastPagePostion.value.y - moveDelta.value.y) - pagePostion.value.y) * 0.1
       // 卡片
       this.$refs.cardRef.forEach((item, index) => {
+        const cardId = item.dataset.id
         const x = -pagePostion.value.x + +item.dataset.x + document.body.clientWidth / 2 - item.clientWidth / 2 - 10
         const y = -pagePostion.value.y + +item.dataset.y + document.body.clientHeight / 2 - item.clientHeight / 2 - 10
         item.style.transform = `translate3D(${x}px, ${y}px, 0)`
+        if (this.cardData[cardId].onChoose && this.onMove) {
+          this.$refs.cardRef[index].dataset.x = +this.cardData[cardId].lastPositionX + moveCardDelta.value.x
+          this.$refs.cardRef[index].dataset.y = +this.cardData[cardId].lastPositionY + moveCardDelta.value.y
+        }
       })
-      if (moveCardIndex) {
-        this.$refs.cardRef[moveCardIndex - 1].dataset.x = +lastCardPostion.value.x + moveCardDelta.value.x
-        this.$refs.cardRef[moveCardIndex - 1].dataset.y = +lastCardPostion.value.y + moveCardDelta.value.y
-      }
       document.querySelector('.test').innerHTML = `
         <p>pagePostionX  ${pagePostion.value.x}</p>
         <p>pagePostionY  ${pagePostion.value.y}</p>
@@ -126,8 +170,6 @@ export default {
         <p>moveDeltaY  ${moveDelta.value.y}</p>
         <p>lastPagePostionX  ${lastPagePostion.value.x}</p>
         <p>lastPagePostionY  ${lastPagePostion.value.y}</p>
-        <p>lastCardPostionX  ${lastCardPostion.value.x}</p>
-        <p>lastCardPostionY  ${lastCardPostion.value.y}</p>
       `
       requestAnimationFrame(render)
     }
@@ -141,13 +183,13 @@ export default {
   <p class="test absolute z-1">123</p>
   <div class="w-screen h-screen text-sm text-dark-200">
     <div
-      v-for="(item, index) in cardData"
-      :style="{ transform: `translate(${item.x}px, ${item.y}px)` }"
-      :key="item.id"
-      :data-id="item.id"
+      v-for="(id, index) in showCardList"
+      :style="{ transform: `translate(${cardData[id].x}px, ${cardData[id].y}px)` }"
+      :key="cardData[id].id"
+      :data-id="cardData[id].id"
       :data-index="index"
-      :data-x="item.x"
-      :data-y="item.y"
+      :data-x="cardData[id].x"
+      :data-y="cardData[id].y"
       class="card absolute group border-10 border-transparent"
       ref="cardRef"
     >
@@ -155,8 +197,10 @@ export default {
         class="move absolute rounded-t bg-black/20 w-full h-2.5 transition opacity-0 group-hover:opacity-100"
       ></p>
       <div
-        v-html="markdown(item.content)"
-        class="rounded p-2 bg-sky-100 border-transparent border-2 group-hover:(border-black/20)"
+        v-html="markdown(cardData[id].content)"
+        class="rounded p-2 bg-sky-100 border-transparent border-2 transition group-hover:(border-black/20)"
+        :class="cardData[id].onChoose ? 'border-black/30' : ''"
+        :style="{ background: cardData[id].background }"
       ></div>
     </div>
   </div>
