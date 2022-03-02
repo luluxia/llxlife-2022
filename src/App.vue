@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import interact from 'interactjs'
 import markdownit from 'markdown-it'
+import cx from 'classnames'
 export default {
   data() {
     return {
@@ -13,6 +14,7 @@ export default {
           width: 590,
           height: 444.67,
           background: 'transparent',
+          border: 'transparent',
           onChoose: false,
           content: '![logo](http://localhost:3000/logo.svg)'
         },
@@ -22,6 +24,8 @@ export default {
           y: 100,
           width: 124,
           height: 60,
+          background: 'transparent',
+          border: 'transparent',
           content: '这是一张卡片'
         },
         3: {
@@ -30,6 +34,8 @@ export default {
           y: 200,
           width: 138,
           height: 60,
+          background: 'transparent',
+          border: 'transparent',
           content: '这是第二张卡片'
         }
       },
@@ -143,7 +149,7 @@ export default {
       })
       .on('tap', event => {
         // 清除选中状态
-        if (event.target.parentNode.id == 'app') {
+        if (event.target.id == 'view') {
           Object.keys(this.cardData).forEach(id => {
             this.cardData[id].onChoose = false
           })
@@ -200,10 +206,16 @@ export default {
           }
         }
       })
+    interact('.test1').on('tap', event => {
+      lastPagePostion.value.x = pagePostion.value.x
+      lastPagePostion.value.y = pagePostion.value.y
+      moveDelta.value.x = +lastPagePostion.value.x - 200
+      moveDelta.value.y = +lastPagePostion.value.y - 200
+    })
     const render = () => {
       // 缓动
-      pagePostion.value.x = pagePostion.value.x + ((lastPagePostion.value.x - moveDelta.value.x) - pagePostion.value.x) * 0.1
-      pagePostion.value.y = pagePostion.value.y + ((lastPagePostion.value.y - moveDelta.value.y) - pagePostion.value.y) * 0.1
+      pagePostion.value.x = (+pagePostion.value.x + ((lastPagePostion.value.x - moveDelta.value.x) - pagePostion.value.x) * 0.1).toFixed(2)
+      pagePostion.value.y = (+pagePostion.value.y + ((lastPagePostion.value.y - moveDelta.value.y) - pagePostion.value.y) * 0.1).toFixed(2)
       // 卡片
       this.$refs.cardRef.forEach((item, index) => {
         const cardId = item.dataset.id
@@ -235,7 +247,8 @@ export default {
 
 <template>
   <p class="test absolute z-1">123</p>
-  <div class="w-screen h-screen text-sm text-dark-200">
+  <p class="test1 absolute z-1 mt-50">转移测试</p>
+  <div id="view" class="w-screen h-screen text-sm text-dark-200">
     <div
       v-for="(id, index) in showCardList"
       :style="{ transform: `translate(${cardData[id].x}px, ${cardData[id].y}px)` }"
@@ -252,24 +265,50 @@ export default {
       ></p>
       <div
         v-html="markdown(cardData[id].content)"
-        class="rounded p-2 bg-sky-100 border-transparent border-2 transition group-hover:(border-black/20)"
-        :class="cardData[id].onChoose ? 'border-black/20' : ''"
-        :style="{ background: cardData[id].background }"
+        class="rounded p-2 bg-sky-100 border-transparent border-2 bg-opacity-50 transition group-hover:(border-black/20)"
+        :class="`${cardData[id].onChoose ? 'border-black/20' : ''} bg-${cardData[id].background} border-${cardData[id].border}`"
+
       ></div>
     </div>
   </div>
   <div
     class="selection absolute pointer-events-none w-10 h-10 bg-teal-200/20 border-teal-200 border-1 top-0 left-0"
   ></div>
+  <!-- 编辑器 -->
   <div
     ref="editor"
-    class="absolute top-0 bg-light-50 border-2 border-black/20 rounded p-2 transition w-50 h-40 text-sm"
+    class="absolute top-0 bg-light-50 border-2 border-black/20 rounded p-2 transition w-50 text-sm"
     :class="selectCardList[0] ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'"
   >
+    <p class="font-bold my-2 text-dark-50">坐标</p>
+    <div v-if="selectCardList[0]" class="flex justify-between">
+      <input v-model="cardData[selectCardList[0]].x" class="bg-gray-100 p-1 w-22 rounded" type="text">
+      <input v-model="cardData[selectCardList[0]].y" class="bg-gray-100 p-1 w-22 rounded" type="text">
+    </div>
+    <p class="font-bold my-2 text-dark-50">外观</p>
+    <div class="flex justify-between space-x-1">
+      <div @click="cardData[selectCardList[0]].background = 'purple'" class="w-full h-5 rounded border-2 border-transparent bg-purple"></div>
+      <div @click="cardData[selectCardList[0]].background = 'blue'" class="w-full h-5 rounded border-2 border-transparent bg-blue"></div>
+      <div @click="cardData[selectCardList[0]].background = 'pink'" class="w-full h-5 rounded border-2 border-transparent bg-pink"></div>
+      <div @click="cardData[selectCardList[0]].background = 'yellow'" class="w-full h-5 rounded border-2 border-transparent bg-yellow"></div>
+      <div @click="cardData[selectCardList[0]].background = 'green'" class="w-full h-5 rounded border-2 border-transparent bg-green"></div>
+      <div @click="cardData[selectCardList[0]].background = 'red'" class="w-full h-5 rounded border-2 border-transparent bg-red"></div>
+      <div @click="cardData[selectCardList[0]].background = 'transparent'" class="w-full h-5 rounded border-2 border-transparent bg-gray-200"></div>
+    </div>
+    <div class="flex justify-between space-x-1 mt-1">
+      <div @click="cardData[selectCardList[0]].border = 'purple'" class="w-full h-5 rounded border-2 border-purple"></div>
+      <div @click="cardData[selectCardList[0]].border = 'blue'" class="w-full h-5 rounded border-2 border-blue"></div>
+      <div @click="cardData[selectCardList[0]].border = 'pink'" class="w-full h-5 rounded border-2 border-pink"></div>
+      <div @click="cardData[selectCardList[0]].border = 'yellow'" class="w-full h-5 rounded border-2 border-yellow"></div>
+      <div @click="cardData[selectCardList[0]].border = 'green'" class="w-full h-5 rounded border-2 border-green"></div>
+      <div @click="cardData[selectCardList[0]].border = 'red'" class="w-full h-5 rounded border-2 border-red"></div>
+      <div @click="cardData[selectCardList[0]].border = 'transparent'" class="w-full h-5 rounded border-2"></div>
+    </div>
+    <p class="font-bold my-2 text-dark-50">内容</p>
     <textarea
       v-if="selectCardList[0]"
       v-model="cardData[selectCardList[0]].content"
-      class="w-full h-30 outline-none"
+      class="w-full h-30 bg-gray-100 p-1 resize-none"
     ></textarea>
   </div>
 </template>
@@ -280,6 +319,6 @@ export default {
   padding: 0;
 }
 body {
-  background: #fffdf1;
+  background: #FFFAF3;
 }
 </style>
