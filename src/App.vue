@@ -1,8 +1,7 @@
 <script>
-import { ref } from 'vue';
+import { ref } from 'vue'
 import interact from 'interactjs'
-import markdownit from 'markdown-it'
-import cx from 'classnames'
+import CardContent from './components/CardContent.vue'
 export default {
   data() {
     return {
@@ -13,9 +12,8 @@ export default {
           y: 0,
           width: 590,
           height: 444.67,
-          background: 'transparent',
-          border: 'transparent',
           onChoose: false,
+          class: '',
           content: '![logo](http://localhost:3000/logo.svg)'
         },
         2: {
@@ -24,31 +22,118 @@ export default {
           y: 100,
           width: 124,
           height: 60,
-          background: 'transparent',
-          border: 'transparent',
+          class: 'theme-blue',
+          content: '这是一张卡片'
+        },
+        4: {
+          id: 4,
+          x: 100,
+          y: 200,
+          width: 124,
+          height: 60,
+          class: 'theme-pink',
+          content: '这是一张卡片'
+        },
+        5: {
+          id: 5,
+          x: 100,
+          y: 300,
+          width: 124,
+          height: 60,
+          class: 'theme-yellow',
+          content: '这是一张卡片'
+        },
+        6: {
+          id: 6,
+          x: 100,
+          y: 400,
+          width: 124,
+          height: 60,
+          class: 'theme-green',
+          content: '这是一张卡片'
+        },
+        7: {
+          id: 7,
+          x: 100,
+          y: 500,
+          width: 124,
+          height: 60,
+          class: 'theme-red',
           content: '这是一张卡片'
         },
         3: {
           id: 3,
-          x: 200,
+          x: 500,
           y: 200,
           width: 138,
           height: 60,
-          background: 'transparent',
-          border: 'transparent',
-          content: '这是第二张卡片'
+          class: 'w-100 theme-purple',
+          content: `
+# 一级标题
+
+## 二级标题
+
+### 三级标题
+
+#### 四级标题
+
+##### 五级标题
+
+###### 六级标题
+
+---
+
+**加粗文本**
+
+*斜体文本*
+
+~~删除文本~~
+
+> 引用文本
+
+- 列表
+- 列表
+  - 列表
+  - 列表
+
+1. 列表
+2. 列表
+
+\`代码\`
+
+\`\`\`
+代码块
+\`\`\`
+
+[链接](https://llx.life)
+
+[链接(有alt)](https://llx.life "陆陆侠的生活")
+
+https://llx.life
+
+![图片](https://octodex.github.com/images/minion.png)
+
+欢迎收看新闻 54 台。我是吉莉安·乔丹。
+
+首先为各位观众带来的是本地新闻。
+
+荒坂公司总部灾难 54 周年的纪念日很快就要到了。
+
+2023 年，在荒坂夜之城总部所引爆的一颗战术原子弹，为整座城市带来了深入骨髓的末日灾难。
+
+          `
         }
       },
-      showCardList: [1, 2, 3],
+      showCardList: [1, 2, 3, 4, 5, 6, 7],
       selectCardList: [],
       onMove: false
     };
   },
+  components: {
+    CardContent
+  },
   methods: {
-    markdown(content) {
-      const md = new markdownit();
-      return md.render(content)
-    }
+
   },
   mounted() {
     const pagePostion = ref({ x: 0, y: 0 })     // 当前页面的位置
@@ -142,7 +227,7 @@ export default {
                 selectCardList.push(card.id)
               }
             })
-            _this.showCardList = showCardList
+            // _this.showCardList = showCardList
             _this.selectCardList = selectCardList
           }
         }
@@ -227,6 +312,8 @@ export default {
           this.$refs.cardRef[index].dataset.y = +this.cardData[cardId].y + moveCardDelta.value.y
         }
       })
+      document.body.style.backgroundPositionX = `${-pagePostion.value.x}px`
+      document.body.style.backgroundPositionY = `${-pagePostion.value.y}px`
       document.querySelector('.test').innerHTML = `
         <p>pagePostionX  ${pagePostion.value.x}</p>
         <p>pagePostionY  ${pagePostion.value.y}</p>
@@ -246,9 +333,12 @@ export default {
 >
 
 <template>
+  <img class="absolute" src="flag-left.svg" alt="">
+  <img class="absolute right-0" src="flag-right.svg" alt="">
   <p class="test absolute z-1">123</p>
   <p class="test1 absolute z-1 mt-50">转移测试</p>
   <div id="view" class="w-screen h-screen text-sm text-dark-200">
+    <!-- 卡片 -->
     <div
       v-for="(id, index) in showCardList"
       :style="{ transform: `translate(${cardData[id].x}px, ${cardData[id].y}px)` }"
@@ -263,12 +353,7 @@ export default {
       <p
         class="move absolute rounded-t bg-black/20 w-full h-2.5 transition opacity-0 group-hover:opacity-100"
       ></p>
-      <div
-        v-html="markdown(cardData[id].content)"
-        class="rounded p-2 bg-sky-100 border-transparent border-2 bg-opacity-50 transition group-hover:(border-black/20)"
-        :class="`${cardData[id].onChoose ? 'border-black/20' : ''} bg-${cardData[id].background} border-${cardData[id].border}`"
-
-      ></div>
+      <CardContent :cardData="cardData[id]"/>
     </div>
   </div>
   <div
@@ -285,7 +370,7 @@ export default {
       <input v-model="cardData[selectCardList[0]].x" class="bg-gray-100 p-1 w-22 rounded" type="text">
       <input v-model="cardData[selectCardList[0]].y" class="bg-gray-100 p-1 w-22 rounded" type="text">
     </div>
-    <p class="font-bold my-2 text-dark-50">外观</p>
+    <p class="font-bold my-2 text-dark-50">主题</p>
     <div class="flex justify-between space-x-1">
       <div @click="cardData[selectCardList[0]].background = 'purple'" class="w-full h-5 rounded border-2 border-transparent bg-purple"></div>
       <div @click="cardData[selectCardList[0]].background = 'blue'" class="w-full h-5 rounded border-2 border-transparent bg-blue"></div>
@@ -294,14 +379,6 @@ export default {
       <div @click="cardData[selectCardList[0]].background = 'green'" class="w-full h-5 rounded border-2 border-transparent bg-green"></div>
       <div @click="cardData[selectCardList[0]].background = 'red'" class="w-full h-5 rounded border-2 border-transparent bg-red"></div>
       <div @click="cardData[selectCardList[0]].background = 'transparent'" class="w-full h-5 rounded border-2 border-transparent bg-gray-200"></div>
-    </div>
-    <div class="flex justify-between space-x-1 mt-1">
-      <div @click="cardData[selectCardList[0]].border = 'purple'" class="w-full h-5 rounded border-2 border-purple"></div>
-      <div @click="cardData[selectCardList[0]].border = 'blue'" class="w-full h-5 rounded border-2 border-blue"></div>
-      <div @click="cardData[selectCardList[0]].border = 'pink'" class="w-full h-5 rounded border-2 border-pink"></div>
-      <div @click="cardData[selectCardList[0]].border = 'yellow'" class="w-full h-5 rounded border-2 border-yellow"></div>
-      <div @click="cardData[selectCardList[0]].border = 'green'" class="w-full h-5 rounded border-2 border-green"></div>
-      <div @click="cardData[selectCardList[0]].border = 'red'" class="w-full h-5 rounded border-2 border-red"></div>
       <div @click="cardData[selectCardList[0]].border = 'transparent'" class="w-full h-5 rounded border-2"></div>
     </div>
     <p class="font-bold my-2 text-dark-50">内容</p>
@@ -309,6 +386,12 @@ export default {
       v-if="selectCardList[0]"
       v-model="cardData[selectCardList[0]].content"
       class="w-full h-30 bg-gray-100 p-1 resize-none"
+    ></textarea>
+    <p class="font-bold my-2 text-dark-50">自定义样式</p>
+    <textarea
+      v-if="selectCardList[0]"
+      v-model="cardData[selectCardList[0]].class"
+      class="w-full h-20 bg-gray-100 p-1 resize-none"
     ></textarea>
   </div>
 </template>
@@ -320,5 +403,7 @@ export default {
 }
 body {
   background: #FFFAF3;
+  background-image: url('./bg.png');
+  background-size: 80%;
 }
 </style>
