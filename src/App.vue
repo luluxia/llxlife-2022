@@ -12,7 +12,7 @@ export default {
           y: 0,
           width: 590,
           height: 444.67,
-          onChoose: false,
+          lsatChangeTime: 1,
           class: '',
           content: '![logo](http://localhost:3000/logo.svg)'
         },
@@ -22,6 +22,7 @@ export default {
           y: 100,
           width: 124,
           height: 60,
+          lsatChangeTime: 1,
           class: 'theme-blue',
           content: '这是一张卡片'
         },
@@ -31,6 +32,7 @@ export default {
           y: 200,
           width: 124,
           height: 60,
+          lsatChangeTime: 1,
           class: 'theme-pink',
           content: '这是一张卡片'
         },
@@ -40,6 +42,7 @@ export default {
           y: 300,
           width: 124,
           height: 60,
+          lsatChangeTime: 1,
           class: 'theme-yellow',
           content: '这是一张卡片'
         },
@@ -49,6 +52,7 @@ export default {
           y: 400,
           width: 124,
           height: 60,
+          lsatChangeTime: 1,
           class: 'theme-green',
           content: '这是一张卡片'
         },
@@ -58,6 +62,7 @@ export default {
           y: 500,
           width: 124,
           height: 60,
+          lsatChangeTime: 1,
           class: 'theme-red',
           content: '这是一张卡片'
         },
@@ -67,6 +72,7 @@ export default {
           y: 200,
           width: 138,
           height: 60,
+          lsatChangeTime: 1,
           class: 'w-100 theme-purple',
           content: `
 # 一级标题
@@ -201,7 +207,7 @@ https://llx.life
               })
             }
           },
-          end() {
+          end(event) {
             onSelection = false
             haveMoved = false
             selection.style.opacity = 0
@@ -229,14 +235,25 @@ https://llx.life
             })
             // _this.showCardList = showCardList
             _this.selectCardList = selectCardList
+            if (selectCardList.length) {
+              console.log(event)
+              _this.$refs.editor.style.transform = `translate3d(${event.page.x + 10}px, ${event.page.y + 10}px, 0)`
+            }
+
           }
         }
       })
       .on('tap', event => {
         // 清除选中状态
         if (event.target.id == 'view') {
-          Object.keys(this.cardData).forEach(id => {
+          // Object.keys(this.cardData).forEach(id => {
+          //   this.cardData[id].onChoose = false
+          // })
+          this.selectCardList.forEach(id => {
+            const cardDom = document.querySelector(`[data-id="${id}"]`)
             this.cardData[id].onChoose = false
+            this.cardData[id].width = cardDom.clientWidth
+            this.cardData[id].height = cardDom.clientHeight
           })
           this.selectCardList = []
         }
@@ -365,6 +382,7 @@ https://llx.life
     class="absolute top-0 bg-light-50 border-2 border-black/20 rounded p-2 transition w-50 text-sm"
     :class="selectCardList[0] ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'"
   >
+  <template v-if="selectCardList.length == 1">
     <p class="font-bold my-2 text-dark-50">坐标</p>
     <div v-if="selectCardList[0]" class="flex justify-between">
       <input v-model="cardData[selectCardList[0]].x" class="bg-gray-100 p-1 w-22 rounded" type="text">
@@ -372,14 +390,14 @@ https://llx.life
     </div>
     <p class="font-bold my-2 text-dark-50">主题</p>
     <div class="flex justify-between space-x-1">
-      <div @click="cardData[selectCardList[0]].background = 'purple'" class="w-full h-5 rounded border-2 border-transparent bg-purple"></div>
-      <div @click="cardData[selectCardList[0]].background = 'blue'" class="w-full h-5 rounded border-2 border-transparent bg-blue"></div>
-      <div @click="cardData[selectCardList[0]].background = 'pink'" class="w-full h-5 rounded border-2 border-transparent bg-pink"></div>
-      <div @click="cardData[selectCardList[0]].background = 'yellow'" class="w-full h-5 rounded border-2 border-transparent bg-yellow"></div>
-      <div @click="cardData[selectCardList[0]].background = 'green'" class="w-full h-5 rounded border-2 border-transparent bg-green"></div>
-      <div @click="cardData[selectCardList[0]].background = 'red'" class="w-full h-5 rounded border-2 border-transparent bg-red"></div>
-      <div @click="cardData[selectCardList[0]].background = 'transparent'" class="w-full h-5 rounded border-2 border-transparent bg-gray-200"></div>
-      <div @click="cardData[selectCardList[0]].border = 'transparent'" class="w-full h-5 rounded border-2"></div>
+      <div class="w-full h-5 rounded border-2 border-transparent bg-purple"></div>
+      <div class="w-full h-5 rounded border-2 border-transparent bg-blue"></div>
+      <div class="w-full h-5 rounded border-2 border-transparent bg-pink"></div>
+      <div class="w-full h-5 rounded border-2 border-transparent bg-yellow"></div>
+      <div class="w-full h-5 rounded border-2 border-transparent bg-green"></div>
+      <div class="w-full h-5 rounded border-2 border-transparent bg-red"></div>
+      <div class="w-full h-5 rounded border-2 border-transparent bg-gray-200"></div>
+      <div class="w-full h-5 rounded border-2"></div>
     </div>
     <p class="font-bold my-2 text-dark-50">内容</p>
     <textarea
@@ -393,6 +411,11 @@ https://llx.life
       v-model="cardData[selectCardList[0]].class"
       class="w-full h-20 bg-gray-100 p-1 resize-none"
     ></textarea>
+  </template>
+  <template v-if="selectCardList.length > 1">
+    <p class="font-bold my-2 text-dark-50">排列</p>
+    <p class="font-bold my-2 text-dark-50">对齐</p>
+  </template>
   </div>
 </template>
 
