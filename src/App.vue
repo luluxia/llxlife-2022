@@ -1,6 +1,7 @@
 <script>
 import { ref } from 'vue'
 import interact from 'interactjs'
+import _ from 'lodash'
 import CardContent from './components/CardContent.vue'
 export default {
   data() {
@@ -139,7 +140,28 @@ https://llx.life
     CardContent
   },
   methods: {
-
+    verticalSort() {
+      const sortedList = _.sortBy(this.selectCardList, id => {
+        return +this.cardData[id].y
+      })
+      sortedList.forEach((id, index) => {
+        if (index) {
+          this.cardData[id].x = this.cardData[sortedList[0]].x
+          this.cardData[id].y = +this.cardData[sortedList[index - 1]].y + this.cardData[sortedList[index - 1]].height / 2 + this.cardData[id].height / 2 + 10
+        }
+      })
+    },
+    HorizontalSort() {
+      const sortedList = _.sortBy(this.selectCardList, id => {
+        return +this.cardData[id].x
+      })
+      sortedList.forEach((id, index) => {
+        if (index) {
+          this.cardData[id].y = this.cardData[sortedList[0]].y
+          this.cardData[id].x = +this.cardData[sortedList[index - 1]].x + this.cardData[sortedList[index - 1]].width / 2 + this.cardData[id].width / 2 + 10
+        }
+      })
+    }
   },
   mounted() {
     const pagePostion = ref({ x: 0, y: 0 })     // 当前页面的位置
@@ -350,8 +372,8 @@ https://llx.life
 >
 
 <template>
-  <img class="absolute" src="flag-left.svg" alt="">
-  <img class="absolute right-0" src="flag-right.svg" alt="">
+  <img class="absolute" src="flag-left.svg" alt />
+  <img class="absolute right-0" src="flag-right.svg" alt />
   <p class="test absolute z-1">123</p>
   <p class="test1 absolute z-1 mt-50">转移测试</p>
   <div id="view" class="w-screen h-screen text-sm text-dark-200">
@@ -370,7 +392,7 @@ https://llx.life
       <p
         class="move absolute rounded-t bg-black/20 w-full h-2.5 transition opacity-0 group-hover:opacity-100"
       ></p>
-      <CardContent :cardData="cardData[id]"/>
+      <CardContent :cardData="cardData[id]" />
     </div>
   </div>
   <div
@@ -379,54 +401,99 @@ https://llx.life
   <!-- 编辑器 -->
   <div
     ref="editor"
-    class="absolute top-0 bg-light-50 border-2 border-black/20 rounded p-2 transition w-50 text-sm"
+    class="absolute top-0 bg-light-50 border-2 border-black/20 rounded p-2 transition min-w-50 text-sm"
     :class="selectCardList[0] ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'"
   >
-  <template v-if="selectCardList.length == 1">
-    <p class="font-bold my-2 text-dark-50">坐标</p>
-    <div v-if="selectCardList[0]" class="flex justify-between">
-      <input v-model="cardData[selectCardList[0]].x" class="bg-gray-100 p-1 w-22 rounded" type="text">
-      <input v-model="cardData[selectCardList[0]].y" class="bg-gray-100 p-1 w-22 rounded" type="text">
-    </div>
-    <p class="font-bold my-2 text-dark-50">主题</p>
-    <div class="flex justify-between space-x-1">
-      <div class="w-full h-5 rounded border-2 border-transparent bg-purple"></div>
-      <div class="w-full h-5 rounded border-2 border-transparent bg-blue"></div>
-      <div class="w-full h-5 rounded border-2 border-transparent bg-pink"></div>
-      <div class="w-full h-5 rounded border-2 border-transparent bg-yellow"></div>
-      <div class="w-full h-5 rounded border-2 border-transparent bg-green"></div>
-      <div class="w-full h-5 rounded border-2 border-transparent bg-red"></div>
-      <div class="w-full h-5 rounded border-2 border-transparent bg-gray-200"></div>
-      <div class="w-full h-5 rounded border-2"></div>
-    </div>
-    <p class="font-bold my-2 text-dark-50">内容</p>
-    <textarea
-      v-if="selectCardList[0]"
-      v-model="cardData[selectCardList[0]].content"
-      class="w-full h-30 bg-gray-100 p-1 resize-none"
-    ></textarea>
-    <p class="font-bold my-2 text-dark-50">自定义样式</p>
-    <textarea
-      v-if="selectCardList[0]"
-      v-model="cardData[selectCardList[0]].class"
-      class="w-full h-20 bg-gray-100 p-1 resize-none"
-    ></textarea>
-  </template>
-  <template v-if="selectCardList.length > 1">
-    <p class="font-bold my-2 text-dark-50">排列</p>
-    <p class="font-bold my-2 text-dark-50">对齐</p>
-  </template>
+    <!-- 编辑器-单选 -->
+    <template v-if="selectCardList.length == 1">
+      <p class="font-bold my-2 text-dark-50">坐标</p>
+      <div v-if="selectCardList[0]" class="flex justify-between">
+        <input
+          v-model="cardData[selectCardList[0]].x"
+          class="bg-gray-100 p-1 w-22 rounded"
+          type="text"
+        />
+        <input
+          v-model="cardData[selectCardList[0]].y"
+          class="bg-gray-100 p-1 w-22 rounded"
+          type="text"
+        />
+      </div>
+      <p class="font-bold my-2 text-dark-50">主题</p>
+      <div class="flex justify-between space-x-1">
+        <div class="w-full h-5 rounded border-2 border-transparent bg-purple"></div>
+        <div class="w-full h-5 rounded border-2 border-transparent bg-blue"></div>
+        <div class="w-full h-5 rounded border-2 border-transparent bg-pink"></div>
+        <div class="w-full h-5 rounded border-2 border-transparent bg-yellow"></div>
+        <div class="w-full h-5 rounded border-2 border-transparent bg-green"></div>
+        <div class="w-full h-5 rounded border-2 border-transparent bg-red"></div>
+        <div class="w-full h-5 rounded border-2 border-transparent bg-gray-200"></div>
+        <div class="w-full h-5 rounded border-2"></div>
+      </div>
+      <p class="font-bold my-2 text-dark-50">内容</p>
+      <textarea
+        v-if="selectCardList[0]"
+        v-model="cardData[selectCardList[0]].content"
+        class="w-full h-30 bg-gray-100 p-1 resize-none"
+      ></textarea>
+      <p class="font-bold my-2 text-dark-50">自定义样式</p>
+      <textarea
+        v-if="selectCardList[0]"
+        v-model="cardData[selectCardList[0]].class"
+        class="w-full h-20 bg-gray-100 p-1 resize-none"
+      ></textarea>
+    </template>
+    <!-- 编辑器-多选 -->
+    <template v-if="selectCardList.length > 1">
+      <p class="font-bold my-2 text-dark-50">排列</p>
+      <div class="flex space-x-1">
+        <div
+          @click="verticalSort()"
+          class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
+        >
+          <i class="iconfont icon-daliebiao text-dark-50"></i>
+        </div>
+        <div
+          @click="HorizontalSort()"
+          class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
+        >
+          <i class="iconfont icon-daliebiao text-dark-50"></i>
+        </div>
+      </div>
+      <p class="font-bold my-2 text-dark-50">对齐</p>
+      <div class="flex space-x-1">
+        <div class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center">
+          <i class="iconfont icon-zuoduiqi text-dark-50"></i>
+        </div>
+        <div class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center">
+          <i class="iconfont icon-hengxiangjuzhongduiqi text-dark-50"></i>
+        </div>
+        <div class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center">
+          <i class="iconfont icon-youduiqi text-dark-50"></i>
+        </div>
+        <div class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center">
+          <i class="iconfont icon-dibuduiqi text-dark-50"></i>
+        </div>
+        <div class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center">
+          <i class="iconfont icon-shuxiangjuzhongduiqi text-dark-50"></i>
+        </div>
+        <div class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center">
+          <i class="iconfont icon-dingbuduiqi text-dark-50"></i>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
 <style>
+@import url(//at.alicdn.com/t/font_3228461_1gy9xrwcfor.css);
 * {
   margin: 0;
   padding: 0;
 }
 body {
-  background: #FFFAF3;
-  background-image: url('./bg.png');
+  background: #fffaf3;
+  background-image: url("./bg.png");
   background-size: 80%;
 }
 </style>
