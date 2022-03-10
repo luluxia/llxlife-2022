@@ -25,7 +25,7 @@ export default {
           height: 60,
           lsatChangeTime: 1,
           class: 'theme-blue',
-          content: '这是一张卡片'
+          content: '这是一张卡片1'
         },
         4: {
           id: 4,
@@ -35,7 +35,7 @@ export default {
           height: 60,
           lsatChangeTime: 1,
           class: 'theme-pink',
-          content: '这是一张卡片'
+          content: '这是一张卡片22'
         },
         5: {
           id: 5,
@@ -45,7 +45,7 @@ export default {
           height: 60,
           lsatChangeTime: 1,
           class: 'theme-yellow',
-          content: '这是一张卡片'
+          content: '这是一张卡片333'
         },
         6: {
           id: 6,
@@ -55,7 +55,7 @@ export default {
           height: 60,
           lsatChangeTime: 1,
           class: 'theme-green',
-          content: '这是一张卡片'
+          content: '这是一张卡片4444'
         },
         7: {
           id: 7,
@@ -65,7 +65,7 @@ export default {
           height: 60,
           lsatChangeTime: 1,
           class: 'theme-red',
-          content: '这是一张卡片'
+          content: '这是一张卡片55555'
         },
         3: {
           id: 3,
@@ -140,28 +140,77 @@ https://llx.life
     CardContent
   },
   methods: {
-    verticalSort() {
+    verticalDistribute() {
       const sortedList = _.sortBy(this.selectCardList, id => {
         return +this.cardData[id].y
       })
       sortedList.forEach((id, index) => {
         if (index) {
-          this.cardData[id].x = this.cardData[sortedList[0]].x
-          this.cardData[id].y = +this.cardData[sortedList[index - 1]].y + this.cardData[sortedList[index - 1]].height / 2 + this.cardData[id].height / 2 + 10
+          const firstCard = this.cardData[sortedList[0]]
+          const lastCard = this.cardData[sortedList[index - 1]]
+          const selfCard = this.cardData[id]
+          this.cardData[id].x = +firstCard.x - (firstCard.width - selfCard.width) / 2
+          this.cardData[id].y = +lastCard.y + lastCard.height / 2 + selfCard.height / 2 + 10
         }
       })
     },
-    HorizontalSort() {
+    horizontalDistribute() {
       const sortedList = _.sortBy(this.selectCardList, id => {
         return +this.cardData[id].x
       })
       sortedList.forEach((id, index) => {
         if (index) {
-          this.cardData[id].y = this.cardData[sortedList[0]].y
-          this.cardData[id].x = +this.cardData[sortedList[index - 1]].x + this.cardData[sortedList[index - 1]].width / 2 + this.cardData[id].width / 2 + 10
+          const firstCard = this.cardData[sortedList[0]]
+          const lastCard = this.cardData[sortedList[index - 1]]
+          const selfCard = this.cardData[id]
+          this.cardData[id].y = +firstCard.y - (firstCard.height - selfCard.height) / 2
+          this.cardData[id].x = +lastCard.x + lastCard.width / 2 + this.cardData[id].width / 2 + 10
         }
       })
-    }
+    },
+    alignLeft() {
+      const minX = _.min(this.selectCardList.map(id => {
+        return +this.cardData[id].x - this.cardData[id].width / 2
+      }))
+      this.selectCardList.forEach(id => {
+        this.cardData[id].x = minX + this.cardData[id].width / 2
+      })
+    },
+    centerHorizontally() {
+      this.selectCardList.forEach(id => {
+        this.cardData[id].x = this.cardData[this.selectCardList[0]].x
+      })
+    },
+    alignRight() {
+      const maxX = _.max(this.selectCardList.map(id => {
+        return +this.cardData[id].x + this.cardData[id].width / 2
+      }))
+      console.log(maxX)
+      this.selectCardList.forEach(id => {
+        this.cardData[id].x = maxX - this.cardData[id].width / 2
+      })
+    },
+    alignTop() {
+      const minY = _.min(this.selectCardList.map(id => {
+        return +this.cardData[id].y - this.cardData[id].height / 2
+      }))
+      this.selectCardList.forEach(id => {
+        this.cardData[id].y = minY + this.cardData[id].height / 2
+      })
+    },
+    centerVerticaly() {
+      this.selectCardList.forEach(id => {
+        this.cardData[id].y = this.cardData[this.selectCardList[0]].y
+      })
+    },
+    alignBottom() {
+      const maxY = _.max(this.selectCardList.map(id => {
+        return +this.cardData[id].y + this.cardData[id].height / 2
+      }))
+      this.selectCardList.forEach(id => {
+        this.cardData[id].y = maxY - this.cardData[id].height / 2
+      })
+    },
   },
   mounted() {
     const pagePostion = ref({ x: 0, y: 0 })     // 当前页面的位置
@@ -448,13 +497,13 @@ https://llx.life
       <p class="font-bold my-2 text-dark-50">排列</p>
       <div class="flex space-x-1">
         <div
-          @click="verticalSort()"
+          @click="verticalDistribute()"
           class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
         >
           <i class="iconfont icon-daliebiao text-dark-50"></i>
         </div>
         <div
-          @click="HorizontalSort()"
+          @click="horizontalDistribute()"
           class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
         >
           <i class="iconfont icon-daliebiao text-dark-50"></i>
@@ -462,22 +511,40 @@ https://llx.life
       </div>
       <p class="font-bold my-2 text-dark-50">对齐</p>
       <div class="flex space-x-1">
-        <div class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center">
+        <div
+          @click="alignLeft()"
+          class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
+        >
           <i class="iconfont icon-zuoduiqi text-dark-50"></i>
         </div>
-        <div class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center">
+        <div
+          @click="centerHorizontally()"
+          class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
+        >
           <i class="iconfont icon-hengxiangjuzhongduiqi text-dark-50"></i>
         </div>
-        <div class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center">
+        <div
+          @click="alignRight()"
+          class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
+        >
           <i class="iconfont icon-youduiqi text-dark-50"></i>
         </div>
-        <div class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center">
+        <div
+          @click="alignBottom()"
+          class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
+        >
           <i class="iconfont icon-dibuduiqi text-dark-50"></i>
         </div>
-        <div class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center">
+        <div
+          @click="centerVerticaly()"
+          class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
+        >
           <i class="iconfont icon-shuxiangjuzhongduiqi text-dark-50"></i>
         </div>
-        <div class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center">
+        <div
+          @click="alignTop()"
+          class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
+        >
           <i class="iconfont icon-dingbuduiqi text-dark-50"></i>
         </div>
       </div>
