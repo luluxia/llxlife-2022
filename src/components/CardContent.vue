@@ -6,7 +6,7 @@ const md = new markdownit()
 <template>
   <div
     v-html="md.render(cardData.content)"
-    class="card-content rounded p-2 border-transparent border-2 space-y-4 transition group-hover:(border-black/20)"
+    class="card-content rounded-md p-2 border-transparent border-2 space-y-4 transition group-hover:(border-black/20)"
     :class="`
     ${cardData.onChoose ? '!border-black/20' : ''} 
     ${cardData.class}`"

@@ -32,6 +32,9 @@ export default defineConfig({
         'red-light': '#E9D9D9',
         'default': '#FFFAF3'
       },
+      fontFamily: {
+        default: ['SweiGothicCJKtc-Medium', 'Microsoft YaHei', 'sans-serif'],
+      }
     },
   },
   shortcuts: {

@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import interact from 'interactjs'
 import _ from 'lodash'
 import CardContent from './components/CardContent.vue'
+import EditorBtn from './components/EditorBtn.vue'
 export default {
   data() {
     return {
@@ -137,8 +138,9 @@ https://llx.life
     };
   },
   components: {
-    CardContent
-  },
+    CardContent,
+    EditorBtn
+},
   methods: {
     verticalDistribute() {
       const sortedList = _.sortBy(this.selectCardList, id => {
@@ -425,7 +427,7 @@ https://llx.life
   <img class="absolute right-0" src="flag-right.svg" alt />
   <p class="test absolute z-1">123</p>
   <p class="test1 absolute z-1 mt-50">转移测试</p>
-  <div id="view" class="w-screen h-screen text-sm text-dark-200">
+  <div id="view" class="w-screen h-screen text-sm text-dark-200 font-default">
     <!-- 卡片 -->
     <div
       v-for="(id, index) in showCardList"
@@ -496,57 +498,17 @@ https://llx.life
     <template v-if="selectCardList.length > 1">
       <p class="font-bold my-2 text-dark-50">排列</p>
       <div class="flex space-x-1">
-        <div
-          @click="verticalDistribute()"
-          class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
-        >
-          <i class="iconfont icon-daliebiao text-dark-50"></i>
-        </div>
-        <div
-          @click="horizontalDistribute()"
-          class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
-        >
-          <i class="iconfont icon-daliebiao text-dark-50"></i>
-        </div>
+        <EditorBtn @click="verticalDistribute()" :icon="'icon-daliebiao'"/>
+        <EditorBtn @click="horizontalDistribute()" :icon="'icon-daliebiao'"/>
       </div>
       <p class="font-bold my-2 text-dark-50">对齐</p>
       <div class="flex space-x-1">
-        <div
-          @click="alignLeft()"
-          class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
-        >
-          <i class="iconfont icon-zuoduiqi text-dark-50"></i>
-        </div>
-        <div
-          @click="centerHorizontally()"
-          class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
-        >
-          <i class="iconfont icon-hengxiangjuzhongduiqi text-dark-50"></i>
-        </div>
-        <div
-          @click="alignRight()"
-          class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
-        >
-          <i class="iconfont icon-youduiqi text-dark-50"></i>
-        </div>
-        <div
-          @click="alignBottom()"
-          class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
-        >
-          <i class="iconfont icon-dibuduiqi text-dark-50"></i>
-        </div>
-        <div
-          @click="centerVerticaly()"
-          class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
-        >
-          <i class="iconfont icon-shuxiangjuzhongduiqi text-dark-50"></i>
-        </div>
-        <div
-          @click="alignTop()"
-          class="bg-gray-100 rounded border-2 p-2 w-8 h-8 flex items-center justify-center"
-        >
-          <i class="iconfont icon-dingbuduiqi text-dark-50"></i>
-        </div>
+        <EditorBtn @click="alignLeft()" :icon="'icon-zuoduiqi'"/>
+        <EditorBtn @click="centerHorizontally()" :icon="'icon-hengxiangjuzhongduiqi'"/>
+        <EditorBtn @click="alignRight()" :icon="'icon-youduiqi'"/>
+        <EditorBtn @click="alignBottom()" :icon="'icon-dibuduiqi'"/>
+        <EditorBtn @click="centerVerticaly()" :icon="'icon-shuxiangjuzhongduiqi'"/>
+        <EditorBtn @click="alignTop()" :icon="'icon-dingbuduiqi'"/>
       </div>
     </template>
   </div>
@@ -554,6 +516,13 @@ https://llx.life
 
 <style>
 @import url(//at.alicdn.com/t/font_3228461_1gy9xrwcfor.css);
+@font-face {
+  font-family: SweiGothicCJKtc-Medium;
+  src: url(https://cdn.jsdelivr.net/gh/max32002/swei-gothic@2.129/WebFont/CJK%20TC/SweiGothicCJKtc-Medium.woff2)
+      format("woff2"),
+    url(https://cdn.jsdelivr.net/gh/max32002/swei-gothic@2.129/WebFont/CJK%20TC/SweiGothicCJKtc-Medium.woff)
+      format("woff");
+}
 * {
   margin: 0;
   padding: 0;
