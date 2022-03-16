@@ -316,6 +316,7 @@ https://llx.life
           }
         }
       })
+      // 单击页面
       .on('tap', event => {
         // 清除选中状态
         if (event.target.id == 'view') {
@@ -330,6 +331,20 @@ https://llx.life
           })
           this.selectCardList = []
         }
+      })
+      // 双击页面
+      .on('doubletap', function (event) {
+        const newCardX = event.x - document.body.clientWidth / 2 + +pagePostion.value.x
+        const newCardY = event.y - document.body.clientHeight / 2 + +pagePostion.value.y
+        const createTime = new Date().getTime()
+        _this.cardData[createTime] = {
+          id: createTime,
+          x: newCardX,
+          y: newCardY,
+          class: 'theme-blue',
+          content: '你好，世界！'
+        }
+        _this.showCardList.push(createTime)
       })
     // 卡片拖拽
     interact('.card')
