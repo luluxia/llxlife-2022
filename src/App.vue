@@ -442,6 +442,17 @@ https://llx.life
       requestAnimationFrame(render)
     }
     render()
+    
+    // 滚动
+    document.body.addEventListener('wheel', e => {
+      console.log(e)
+      if (e.deltaY > 0) {
+        moveDelta.value.y -= 50
+      } else {
+        moveDelta.value.y += 50
+      }
+    })
+
   }
 };
 </script>
@@ -518,26 +529,26 @@ https://llx.life
         class="w-full h-20 bg-gray-100 p-1 resize-none block"
       ></textarea>
       <p class="font-bold text-dark-50">操作</p>
-      <EditorBtn @click="removeCard()" :icon="'icon-shanchu'"/>
+      <EditorBtn @click="removeCard()" :icon="'icon-shanchu'" />
     </template>
     <!-- 编辑器-多选 -->
     <template v-if="selectCardList.length > 1">
       <p class="font-bold text-dark-50">排列</p>
       <div class="flex space-x-1">
-        <EditorBtn @click="verticalDistribute()" :icon="'icon-chuizhipailie'"/>
-        <EditorBtn @click="horizontalDistribute()" :icon="'icon-shuipingpailie'"/>
+        <EditorBtn @click="verticalDistribute()" :icon="'icon-chuizhipailie'" />
+        <EditorBtn @click="horizontalDistribute()" :icon="'icon-shuipingpailie'" />
       </div>
       <p class="font-bold text-dark-50">对齐</p>
       <div class="flex space-x-1">
-        <EditorBtn @click="alignLeft()" :icon="'icon-zuoduiqi'"/>
-        <EditorBtn @click="centerHorizontally()" :icon="'icon-hengxiangjuzhongduiqi'"/>
-        <EditorBtn @click="alignRight()" :icon="'icon-youduiqi'"/>
-        <EditorBtn @click="alignBottom()" :icon="'icon-dibuduiqi'"/>
-        <EditorBtn @click="centerVerticaly()" :icon="'icon-shuxiangjuzhongduiqi'"/>
-        <EditorBtn @click="alignTop()" :icon="'icon-dingbuduiqi'"/>
+        <EditorBtn @click="alignLeft()" :icon="'icon-zuoduiqi'" />
+        <EditorBtn @click="centerHorizontally()" :icon="'icon-hengxiangjuzhongduiqi'" />
+        <EditorBtn @click="alignRight()" :icon="'icon-youduiqi'" />
+        <EditorBtn @click="alignBottom()" :icon="'icon-dibuduiqi'" />
+        <EditorBtn @click="centerVerticaly()" :icon="'icon-shuxiangjuzhongduiqi'" />
+        <EditorBtn @click="alignTop()" :icon="'icon-dingbuduiqi'" />
       </div>
       <p class="font-bold text-dark-50">操作</p>
-      <EditorBtn @click="removeCard()" :icon="'icon-shanchu'"/>
+      <EditorBtn @click="removeCard()" :icon="'icon-shanchu'" />
     </template>
   </div>
 </template>
