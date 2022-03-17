@@ -14,7 +14,7 @@ export default {
           y: 0,
           width: 590,
           height: 444.67,
-          lsatChangeTime: 1,
+          lastChangeTime: 1,
           class: '',
           content: '![logo](http://localhost:3000/logo.svg)'
         },
@@ -24,7 +24,7 @@ export default {
           y: 100,
           width: 124,
           height: 60,
-          lsatChangeTime: 1,
+          lastChangeTime: 1,
           class: 'theme-blue',
           content: '这是一张卡片1'
         },
@@ -34,7 +34,7 @@ export default {
           y: 200,
           width: 124,
           height: 60,
-          lsatChangeTime: 1,
+          lastChangeTime: 1,
           class: 'theme-pink',
           content: '这是一张卡片22'
         },
@@ -44,7 +44,7 @@ export default {
           y: 300,
           width: 124,
           height: 60,
-          lsatChangeTime: 1,
+          lastChangeTime: 1,
           class: 'theme-yellow',
           content: '这是一张卡片333'
         },
@@ -54,7 +54,7 @@ export default {
           y: 400,
           width: 124,
           height: 60,
-          lsatChangeTime: 1,
+          lastChangeTime: 1,
           class: 'theme-green',
           content: '这是一张卡片4444'
         },
@@ -64,7 +64,7 @@ export default {
           y: 500,
           width: 124,
           height: 60,
-          lsatChangeTime: 1,
+          lastChangeTime: 1,
           class: 'theme-red',
           content: '这是一张卡片55555'
         },
@@ -74,7 +74,7 @@ export default {
           y: 200,
           width: 138,
           height: 60,
-          lsatChangeTime: 1,
+          lastChangeTime: 1,
           class: 'w-100 theme-purple',
           content: `
 # 一级标题
@@ -140,7 +140,7 @@ https://llx.life
   components: {
     CardContent,
     EditorBtn
-},
+  },
   methods: {
     verticalDistribute() {
       const sortedList = _.sortBy(this.selectCardList, id => {
@@ -213,6 +213,16 @@ https://llx.life
         this.cardData[id].y = maxY - this.cardData[id].height / 2
       })
     },
+    removeCard() {
+      this.showCardList = this.showCardList.filter(id => {
+        return !this.selectCardList.includes(id)
+      })
+      console.log(this.showCardList)
+      this.selectCardList.forEach(id => {
+        delete this.cardData[id]
+      })
+      this.selectCardList = []
+    }
   },
   mounted() {
     const pagePostion = ref({ x: 0, y: 0 })     // 当前页面的位置
@@ -391,7 +401,7 @@ https://llx.life
           const cardId = event.target.parentNode.dataset.id
           this.cardData[cardId].onChoose = !this.cardData[cardId].onChoose
           if (this.cardData[cardId].onChoose) {
-            this.selectCardList = [cardId]
+            this.selectCardList = [+cardId]
             this.$refs.editor.style.transform = `translate3d(${event.x + 10}px, ${event.y + 10}px, 0)`
           }
         }
@@ -435,7 +445,6 @@ https://llx.life
   }
 };
 </script>
->
 
 <template>
   <img class="absolute" src="flag-left.svg" alt />
@@ -467,12 +476,12 @@ https://llx.life
   <!-- 编辑器 -->
   <div
     ref="editor"
-    class="absolute top-0 bg-light-50 border-2 border-black/20 rounded p-2 transition min-w-50 text-sm"
+    class="absolute top-0 bg-light-50 border-2 border-black/20 rounded p-2 transition min-w-50 text-sm space-y-2"
     :class="selectCardList[0] ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'"
   >
     <!-- 编辑器-单选 -->
     <template v-if="selectCardList.length == 1">
-      <p class="font-bold my-2 text-dark-50">坐标</p>
+      <p class="font-bold text-dark-50">坐标</p>
       <div v-if="selectCardList[0]" class="flex justify-between">
         <input
           v-model="cardData[selectCardList[0]].x"
@@ -485,7 +494,7 @@ https://llx.life
           type="text"
         />
       </div>
-      <p class="font-bold my-2 text-dark-50">主题</p>
+      <p class="font-bold text-dark-50">主题</p>
       <div class="flex justify-between space-x-1">
         <div class="w-full h-5 rounded border-2 border-transparent bg-purple"></div>
         <div class="w-full h-5 rounded border-2 border-transparent bg-blue"></div>
@@ -496,27 +505,29 @@ https://llx.life
         <div class="w-full h-5 rounded border-2 border-transparent bg-gray-200"></div>
         <div class="w-full h-5 rounded border-2"></div>
       </div>
-      <p class="font-bold my-2 text-dark-50">内容</p>
+      <p class="font-bold text-dark-50">内容</p>
       <textarea
         v-if="selectCardList[0]"
         v-model="cardData[selectCardList[0]].content"
-        class="w-full h-30 bg-gray-100 p-1 resize-none"
+        class="w-full h-30 bg-gray-100 p-1 resize-none block"
       ></textarea>
-      <p class="font-bold my-2 text-dark-50">自定义样式</p>
+      <p class="font-bold text-dark-50">自定义样式</p>
       <textarea
         v-if="selectCardList[0]"
         v-model="cardData[selectCardList[0]].class"
-        class="w-full h-20 bg-gray-100 p-1 resize-none"
+        class="w-full h-20 bg-gray-100 p-1 resize-none block"
       ></textarea>
+      <p class="font-bold text-dark-50">操作</p>
+      <EditorBtn @click="removeCard()" :icon="'icon-shanchu'"/>
     </template>
     <!-- 编辑器-多选 -->
     <template v-if="selectCardList.length > 1">
-      <p class="font-bold my-2 text-dark-50">排列</p>
+      <p class="font-bold text-dark-50">排列</p>
       <div class="flex space-x-1">
-        <EditorBtn @click="verticalDistribute()" :icon="'icon-daliebiao'"/>
-        <EditorBtn @click="horizontalDistribute()" :icon="'icon-daliebiao'"/>
+        <EditorBtn @click="verticalDistribute()" :icon="'icon-chuizhipailie'"/>
+        <EditorBtn @click="horizontalDistribute()" :icon="'icon-shuipingpailie'"/>
       </div>
-      <p class="font-bold my-2 text-dark-50">对齐</p>
+      <p class="font-bold text-dark-50">对齐</p>
       <div class="flex space-x-1">
         <EditorBtn @click="alignLeft()" :icon="'icon-zuoduiqi'"/>
         <EditorBtn @click="centerHorizontally()" :icon="'icon-hengxiangjuzhongduiqi'"/>
@@ -525,12 +536,14 @@ https://llx.life
         <EditorBtn @click="centerVerticaly()" :icon="'icon-shuxiangjuzhongduiqi'"/>
         <EditorBtn @click="alignTop()" :icon="'icon-dingbuduiqi'"/>
       </div>
+      <p class="font-bold text-dark-50">操作</p>
+      <EditorBtn @click="removeCard()" :icon="'icon-shanchu'"/>
     </template>
   </div>
 </template>
 
 <style>
-@import url(//at.alicdn.com/t/font_3228461_1gy9xrwcfor.css);
+@import url(//at.alicdn.com/t/font_3228461_0s1hz2e5dm.css);
 @font-face {
   font-family: SweiGothicCJKtc-Medium;
   src: url(https://cdn.jsdelivr.net/gh/max32002/swei-gothic@2.129/WebFont/CJK%20TC/SweiGothicCJKtc-Medium.woff2)
