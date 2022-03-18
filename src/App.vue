@@ -139,6 +139,11 @@ https://llx.life
       jumpTarget: { x: null, y: null }
     };
   },
+  watch: {
+    '$route.name': name => {
+      console.log(name)
+    }
+  },
   components: {
     CardContent,
     EditorBtn
@@ -482,6 +487,10 @@ https://llx.life
   <img class="absolute right-0" src="flag-right.svg" alt />
   <p class="test absolute z-1">123</p>
   <p class="test1 absolute z-1 mt-50">转移测试</p>
+  <div class="absolute z-1 mt-80">
+    <router-link to="/">Go to Home</router-link>
+    <router-link to="/edit">Go to About</router-link>
+  </div>
   <!-- 卡片 -->
   <div id="view" class="w-screen h-screen text-sm text-dark-200 font-default">
     <div
@@ -496,6 +505,7 @@ https://llx.life
       ref="cardRef"
     >
       <p
+        v-if="$route.name == 'edit'"
         class="move absolute rounded-t bg-black/20 w-full h-2.5 transition opacity-0 group-hover:opacity-100"
       ></p>
       <CardContent :cardData="cardData[id]" />
@@ -509,7 +519,10 @@ https://llx.life
   <div
     ref="editor"
     class="absolute top-0 bg-light-50 border-2 border-black/20 rounded p-2 transition min-w-50 text-sm space-y-2"
-    :class="selectCardList[0] ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'"
+    :class="[
+      selectCardList[0] ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
+      $route.name != 'edit' && '!opacity-0 !pointer-events-none'
+    ]"
   >
     <!-- 编辑器-单选 -->
     <template v-if="selectCardList.length == 1">
