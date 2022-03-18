@@ -6,7 +6,7 @@ const md = new markdownit()
 <template>
   <div
     v-html="md.render(cardData.content)"
-    class="card-content rounded-md p-2 border-transparent bg-opacity-50 border-2 space-y-4 transition group-hover:(border-black/20)"
+    class="card-content rounded-sm p-2 border-transparent border-2 space-y-4 transition group-hover:(border-black/20)"
     :class="`
     ${cardData.onChoose ? '!border-black/20' : ''} 
     ${cardData.class}`"
@@ -42,34 +42,15 @@ const md = new markdownit()
     font-size: 13px
   h1,h2,h3,h4,h5,h6
     word-break: break-all !important
-    margin: 20px 0
-    padding-bottom: .3em
     line-height: 1.2
     text-align: left
-    font-weight: bold
-    color: #2c3e50
+    font-weight: normal
     position: relative
   h1
-    display: inline-block
-    padding: 0.2em 0.6em
     color: #fff
-    left: -15px
-    border-radius: 0.2em
-    margin: 0
-    letter-spacing: 2px
-    font-weight: normal
-  // h1:before, h2:before
-  //   content: "#"
-  //   color: #42b983
-  //   position: absolute
-  //   left: -0.8em
-  //   top: -2px
-  //   font-size: 1.2em
-  //   font-weight: bold
-  h1
-    font-size: 20px !important
-  h2
-    font-size: 18px !important
+    text-align: center
+    padding: 0.5em
+    border-radius: 2px
   a
     color: #42b983 !important
     text-decoration: none !important
@@ -78,14 +59,7 @@ const md = new markdownit()
   li
     line-height: 24px
   hr
-    height: 4px
-    padding: 0
-    margin: 16px 0
-    background-color: #e7e7e7
-    border: 0 none
-    overflow: hidden
-    box-sizing: content-box
-    border-bottom: 1px solid #ddd
+    border-bottom: 2px dashed #ddd
   pre
     background: #f2f2f2 !important
     padding: 12px 13px

@@ -356,6 +356,7 @@ https://llx.life
         }
         _this.showCardList.push(createTime)
       })
+
     // 卡片拖拽
     interact('.card')
       .draggable({
@@ -406,12 +407,14 @@ https://llx.life
           }
         }
       })
+
     interact('.test1').on('tap', event => {
       lastPagePostion.value.x = pagePostion.value.x
       lastPagePostion.value.y = pagePostion.value.y
       moveDelta.value.x = +lastPagePostion.value.x - 200
       moveDelta.value.y = +lastPagePostion.value.y - 200
     })
+
     const render = () => {
       // 缓动
       pagePostion.value.x = (+pagePostion.value.x + ((lastPagePostion.value.x - moveDelta.value.x) - pagePostion.value.x) * 0.1).toFixed(2)
@@ -441,8 +444,9 @@ https://llx.life
       `
       requestAnimationFrame(render)
     }
+
     render()
-    
+
     // 滚动
     document.body.addEventListener('wheel', e => {
       console.log(e)
@@ -462,8 +466,8 @@ https://llx.life
   <img class="absolute right-0" src="flag-right.svg" alt />
   <p class="test absolute z-1">123</p>
   <p class="test1 absolute z-1 mt-50">转移测试</p>
+  <!-- 卡片 -->
   <div id="view" class="w-screen h-screen text-sm text-dark-200 font-default">
-    <!-- 卡片 -->
     <div
       v-for="(id, index) in showCardList"
       :style="{ transform: `translate(${cardData[id].x}px, ${cardData[id].y}px)` }"
@@ -481,9 +485,8 @@ https://llx.life
       <CardContent :cardData="cardData[id]" />
     </div>
   </div>
-  <div
-    class="selection absolute pointer-events-none w-10 h-10 bg-teal-200/20 border-teal-200 border-1 top-0 left-0"
-  ></div>
+  <!-- 选框 -->
+  <div class="selection absolute pointer-events-none w-10 h-10 bg-teal-200/20 border-teal-200 border-1 top-0 left-0"></div>
   <!-- 编辑器 -->
   <div
     ref="editor"
