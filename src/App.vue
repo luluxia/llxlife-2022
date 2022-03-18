@@ -134,7 +134,9 @@ https://llx.life
       },
       showCardList: [1, 2, 3, 4, 5, 6, 7],
       selectCardList: [],
-      onMove: false
+      onMove: false,
+      onJump: false,
+      jumpTarget: { x: null, y: null }
     };
   },
   components: {
@@ -414,6 +416,18 @@ https://llx.life
       moveDelta.value.x = +lastPagePostion.value.x - 200
       moveDelta.value.y = +lastPagePostion.value.y - 200
     })
+    interact('.btn-home').on('tap', event => {
+      lastPagePostion.value.x = pagePostion.value.x
+      lastPagePostion.value.y = pagePostion.value.y
+      moveDelta.value.x = +lastPagePostion.value.x
+      moveDelta.value.y = +lastPagePostion.value.y
+    })
+    interact('.btn-jump').on('tap', event => {
+      lastPagePostion.value.x = pagePostion.value.x
+      lastPagePostion.value.y = pagePostion.value.y
+      moveDelta.value.x = +lastPagePostion.value.x - this.jumpTarget.x * 100
+      moveDelta.value.y = +lastPagePostion.value.y - this.jumpTarget.y * 100
+    })
 
     const render = () => {
       // 缓动
@@ -442,6 +456,9 @@ https://llx.life
         <p>showCardList  ${this.showCardList}</p>
         <p>selectCardList ${this.selectCardList}</p>
       `
+      document.querySelector('.coordinate').innerHTML = `
+        ${(pagePostion.value.x / 100).toFixed(2)} , ${(pagePostion.value.y / 100).toFixed(2)}
+      `
       requestAnimationFrame(render)
     }
 
@@ -449,7 +466,6 @@ https://llx.life
 
     // 滚动
     document.body.addEventListener('wheel', e => {
-      console.log(e)
       if (e.deltaY > 0) {
         moveDelta.value.y -= 50
       } else {
@@ -486,7 +502,9 @@ https://llx.life
     </div>
   </div>
   <!-- 选框 -->
-  <div class="selection absolute pointer-events-none w-10 h-10 bg-teal-200/20 border-teal-200 border-1 top-0 left-0"></div>
+  <div
+    class="selection absolute pointer-events-none w-10 h-10 bg-teal-200/20 border-teal-200 border-1 top-0 left-0"
+  ></div>
   <!-- 编辑器 -->
   <div
     ref="editor"
@@ -554,10 +572,41 @@ https://llx.life
       <EditorBtn @click="removeCard()" :icon="'icon-shanchu'" />
     </template>
   </div>
+  <!-- 控制台 -->
+  <div class="absolute bottom-4 right-4 font-default h-10 flex space-x-1">
+    <p class="text-center text-sm bg-white/90 border-black/50 border-2 rounded-sm p-2">
+      主世界 (
+      <span class="coordinate"></span>)
+    </p>
+    <p
+      class="btn-home bg-white/90 border-black/50 border-2 rounded-sm w-10 flex justify-center items-center opacity-50 transition hover:(opacity-100)"
+    >
+      <i class="iconfont icon-yuandian text-xl"></i>
+    </p>
+    <p
+      @click="this.onJump = !this.onJump"
+      class="bg-white/90 border-black/50 border-2 rounded-sm w-10 flex justify-center items-center opacity-50 transition hover:(opacity-100)"
+      :class="this.onJump ? '!opacity-100' : ''"
+    >
+      <i class="iconfont icon-huojian text-xl"></i>
+    </p>
+  </div>
+  <div
+    class="absolute bottom-16 right-4 font-default bg-white/90 border-black/50 border-2 rounded-sm p-2 text-dark-50 text-sm transition opacity-0 pointer-events-none"
+    :class="this.onJump ? 'opacity-100 pointer-events-auto' : ''"
+  >
+    <p>系统初始化已完成……</p>
+    <p>燃料确认充足……</p>
+    <p>跃迁引擎已启动……</p>
+    <p>请指定跳跃坐标……</p>
+    <input v-model="this.jumpTarget.x" class="bg-gray-100 p-1 w-22 rounded-sm border-black/20 border-2 mr-2" placeholder="x" type="text" />
+    <input v-model="this.jumpTarget.y" class="bg-gray-100 p-1 w-22 rounded-sm border-black/20 border-2 mr-2" placeholder="y" type="text" />
+    <p class="btn-jump text-blue-dark inline-block">启动跃迁引擎</p>
+  </div>
 </template>
 
 <style>
-@import url(//at.alicdn.com/t/font_3228461_0s1hz2e5dm.css);
+@import url(//at.alicdn.com/t/font_3228461_z1t2kcu08f.css);
 @font-face {
   font-family: SweiGothicCJKtc-Medium;
   src: url(https://cdn.jsdelivr.net/gh/max32002/swei-gothic@2.129/WebFont/CJK%20TC/SweiGothicCJKtc-Medium.woff2)
