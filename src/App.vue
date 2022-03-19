@@ -480,6 +480,9 @@ https://llx.life
       } else {
         moveDelta.value.y += 50
       }
+      const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2)
+      const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2)
+      this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } })
     })
 
     // URL跳转
