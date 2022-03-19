@@ -136,6 +136,7 @@ https://llx.life
       selectCardList: [],
       onMove: false,
       onJump: false,
+      openEdit: false,
       jumpTarget: { x: null, y: null }
     };
   },
@@ -587,8 +588,8 @@ https://llx.life
     <template v-if="selectCardList.length > 1">
       <p class="font-bold text-dark-50">排列</p>
       <div class="flex space-x-1">
-        <EditorBtn @click="verticalDistribute()" :icon="'icon-chuizhipailie'" />
-        <EditorBtn @click="horizontalDistribute()" :icon="'icon-shuipingpailie'" />
+        <EditorBtn @click="verticalDistribute()" :icon="'icon-shuipingpailie'" />
+        <EditorBtn @click="horizontalDistribute()" :icon="'icon-chuizhipailie'" />
       </div>
       <p class="font-bold text-dark-50">对齐</p>
       <div class="flex space-x-1">
@@ -630,14 +631,45 @@ https://llx.life
     <p>燃料确认充足……</p>
     <p>跃迁引擎已启动……</p>
     <p>请指定跳跃坐标……</p>
-    <input v-model="this.jumpTarget.x" class="bg-gray-100 p-1 w-22 rounded-sm border-black/20 border-2 mr-2" placeholder="x" type="text" />
-    <input v-model="this.jumpTarget.y" class="bg-gray-100 p-1 w-22 rounded-sm border-black/20 border-2 mr-2" placeholder="y" type="text" />
+    <input
+      v-model="this.jumpTarget.x"
+      class="bg-gray-100 p-1 w-22 rounded-sm border-black/20 border-2 mr-2"
+      placeholder="x"
+      type="text"
+    />
+    <input
+      v-model="this.jumpTarget.y"
+      class="bg-gray-100 p-1 w-22 rounded-sm border-black/20 border-2 mr-2"
+      placeholder="y"
+      type="text"
+    />
     <p class="btn-jump text-blue-dark inline-block">启动跃迁引擎</p>
+  </div>
+  <!-- 编辑模式 -->
+  <p
+    @click="this.openEdit = !this.openEdit"
+    class="absolute bottom-4 left-4 font-default bg-white/90 border-black/50 border-2 rounded-sm w-10 h-10 flex justify-center items-center opacity-0 transition hover:(opacity-100)"
+    :class="this.openEdit ? '!opacity-100' : ''"
+  >
+    <i class="iconfont icon-bianji text-xl"></i>
+  </p>
+  <div
+    class="absolute bottom-16 left-4 font-default bg-white/90 border-black/50 border-2 rounded-sm p-2 text-dark-50 text-sm transition opacity-0 pointer-events-none"
+    :class="this.openEdit ? 'opacity-100 pointer-events-auto' : ''"
+  >
+    <p>正在启动创造模式……</p>
+    <p>验证用户身份中……</p>
+    <p>请输入您的超级密钥……</p>
+    <input
+      class="bg-gray-100 p-1 w-22 rounded-sm border-black/20 border-2 mr-2"
+      type="text"
+    />
+    <p class="text-blue-dark inline-block">确认密钥</p>
   </div>
 </template>
 
 <style>
-@import url(//at.alicdn.com/t/font_3228461_z1t2kcu08f.css);
+@import url(//at.alicdn.com/t/font_3228461_apeclwa2cej.css);
 @font-face {
   font-family: SweiGothicCJKtc-Medium;
   src: url(https://cdn.jsdelivr.net/gh/max32002/swei-gothic@2.129/WebFont/CJK%20TC/SweiGothicCJKtc-Medium.woff2)
