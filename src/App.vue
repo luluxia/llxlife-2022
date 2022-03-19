@@ -329,7 +329,10 @@ https://llx.life
               console.log(event)
               _this.$refs.editor.style.transform = `translate3d(${event.page.x + 10}px, ${event.page.y + 10}px, 0)`
             }
-
+            // 更新URL
+            const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2)
+            const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2)
+            _this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } })
           }
         }
       })
@@ -415,23 +418,24 @@ https://llx.life
         }
       })
 
-    interact('.test1').on('tap', event => {
+    const pageJump = (x = 0, y = 0) => {
       lastPagePostion.value.x = pagePostion.value.x
       lastPagePostion.value.y = pagePostion.value.y
-      moveDelta.value.x = +lastPagePostion.value.x - 200
-      moveDelta.value.y = +lastPagePostion.value.y - 200
+      moveDelta.value.x = +lastPagePostion.value.x - x
+      moveDelta.value.y = +lastPagePostion.value.y - y
+      const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2)
+      const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2)
+      this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } })
+    }
+
+    interact('.test1').on('tap', event => {
+      pageJump(200, 200)
     })
     interact('.btn-home').on('tap', event => {
-      lastPagePostion.value.x = pagePostion.value.x
-      lastPagePostion.value.y = pagePostion.value.y
-      moveDelta.value.x = +lastPagePostion.value.x
-      moveDelta.value.y = +lastPagePostion.value.y
+      pageJump()
     })
     interact('.btn-jump').on('tap', event => {
-      lastPagePostion.value.x = pagePostion.value.x
-      lastPagePostion.value.y = pagePostion.value.y
-      moveDelta.value.x = +lastPagePostion.value.x - this.jumpTarget.x * 100
-      moveDelta.value.y = +lastPagePostion.value.y - this.jumpTarget.y * 100
+      pageJump(this.jumpTarget.x * 100, this.jumpTarget.y * 100)
     })
 
     const render = () => {
@@ -478,13 +482,24 @@ https://llx.life
       }
     })
 
+    // URL跳转
+    setTimeout(() => {
+      if (this.$route.params.position) {
+        const position = this.$route.params.position.split(',')
+        lastPagePostion.value.x = pagePostion.value.x
+        lastPagePostion.value.y = pagePostion.value.y
+        moveDelta.value.x = +lastPagePostion.value.x - position[0] * 100
+        moveDelta.value.y = +lastPagePostion.value.y - position[1] * 100
+      }
+    }, 0);
+
   }
 };
 </script>
 
 <template>
-  <img class="absolute" src="flag-left.svg" alt />
-  <img class="absolute right-0" src="flag-right.svg" alt />
+  <img class="absolute" src="/flag-left.svg" alt />
+  <img class="absolute right-0" src="/flag-right.svg" alt />
   <p class="test absolute z-1">123</p>
   <p class="test1 absolute z-1 mt-50">转移测试</p>
   <div class="absolute z-1 mt-80">
@@ -633,7 +648,7 @@ https://llx.life
 }
 body {
   background: #fffaf3;
-  background-image: url("./bg.png");
+  background-image: url("/bg.png");
   background-size: 80%;
 }
 </style>
