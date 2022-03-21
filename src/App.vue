@@ -140,7 +140,8 @@ https://llx.life
       openEdit: false,
       editKey: '',
       editCheck: false,
-      jumpTarget: { x: null, y: null }
+      jumpTarget: { x: null, y: null },
+      cardBlock: []
     };
   },
   watch: {
@@ -246,8 +247,31 @@ https://llx.life
         }
       })
     },
-    getCard() {
-
+    async getCards(x = 0, y = 0) {
+      const blockX = parseInt(x / 5000)
+      const blockY = parseInt(y / 5000)
+      if (!this.cardBlock.includes(`${blockX},${blockY}`)) {
+        this.cardBlock.push(`${blockX},${blockY}`)
+        const { data: res } =  await axios.get('//hasura.llx.ink/api/rest/card/get', {
+          params: {
+            min_x: -5000 + blockX * 5000,
+            max_x: 5000 + blockX * 5000,
+            min_y: -5000 + blockY * 5000,
+            max_y: 5000 + blockY * 5000,
+          },
+          headers: {
+            'x-hasura-world': this.$route.params.world
+          }
+        })
+        res.hanakoi_card.forEach(card => {
+          if (!this.cardData[card.id]) {
+            this.cardData[card.id] = card
+          }
+        })
+      }
+      return new Promise((resolve, reject) => {
+        resolve(this)
+      })
     }
   },
   mounted() {
@@ -320,11 +344,11 @@ https://llx.life
             onSelection = false
             haveMoved = false
             selection.style.opacity = 0
-            checkCards()
             // 更新URL
             const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2)
             const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2)
-            _this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } })
+            _this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } });
+            _this.getCards(parseInt(pagePostion.value.x), parseInt(pagePostion.value.y)).then(() => {checkCards()})
           }
         }
       })
@@ -483,8 +507,12 @@ https://llx.life
       const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2)
       const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2)
       this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } })
-      checkCards()
     })
+
+    document.body.addEventListener('wheel', _.throttle(async () => {
+      await this.getCards(parseInt(pagePostion.value.x), parseInt(pagePostion.value.y))
+      checkCards()
+    }, 5000, { 'trailing': false }))
 
     // 判断卡片是否选中 是否超出边界
     const checkCards = (pageX = pagePostion.value.x, pageY = pagePostion.value.y) => {
@@ -517,7 +545,7 @@ https://llx.life
     }
 
     // 页面跳转
-    const pageJump = (x = 0, y = 0) => {
+    const pageJump = async (x = 0, y = 0) => {
       lastPagePostion.value.x = pagePostion.value.x
       lastPagePostion.value.y = pagePostion.value.y
       moveDelta.value.x = +lastPagePostion.value.x - x
@@ -525,11 +553,12 @@ https://llx.life
       const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2)
       const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2)
       this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } })
+      await this.getCards(x, y)
       checkCards(x, y)
     }
 
     // 初始化
-    setTimeout(() => {
+    setTimeout(async () => {
       // URL跳转
       if (this.$route.params.position) {
         const position = this.$route.params.position.split(',')
@@ -543,23 +572,8 @@ https://llx.life
         // moveDelta.value.y = +lastPagePostion.value.y - position[1] * 100
       }
       // 获取卡片信息
-      axios.get('//hasura.llx.ink/api/rest/card/get', {
-        params: {
-          min_x: -5000,
-          max_x: 5000,
-          min_y: -5000,
-          max_y: 5000,
-        },
-        headers: {
-          'x-hasura-world': this.$route.params.world
-        }
-      }).then(res => {
-        console.log(res.data)
-        res.data.hanakoi_card.forEach(card => {
-          this.cardData[card.id] = card
-        })
-        checkCards()
-      })
+      await this.getCards()
+      checkCards()
     }, 0);
   }
 };
