@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import interact from 'interactjs'
 import _ from 'lodash'
+import axios from 'axios'
 import CardContent from './components/CardContent.vue'
 import EditorBtn from './components/EditorBtn.vue'
 export default {
@@ -132,11 +133,13 @@ https://llx.life
           `
         }
       },
-      showCardList: [1, 2, 3, 4, 5, 6, 7],
+      showCardList: [],
       selectCardList: [],
       onMove: false,
       onJump: false,
       openEdit: false,
+      editKey: '',
+      editCheck: false,
       jumpTarget: { x: null, y: null }
     };
   },
@@ -230,6 +233,21 @@ https://llx.life
         delete this.cardData[id]
       })
       this.selectCardList = []
+    },
+    checkEdit() {
+      axios.get('//hasura.llx.ink/api/rest/world/check', {
+        headers: {
+          'x-hasura-world': this.$route.params.world,
+          'x-hasura-key': this.editKey
+        }
+      }).then(res => {
+        if (res.data.hanakoi_world.length) {
+          this.editCheck = true
+        }
+      })
+    },
+    getCard() {
+
     }
   },
   mounted() {
@@ -302,34 +320,7 @@ https://llx.life
             onSelection = false
             haveMoved = false
             selection.style.opacity = 0
-            // 判断卡片是否选中 是否超出边界
-            let showCardList = []
-            let selectCardList = []
-            const pageX = pagePostion.value.x
-            const pageY = pagePostion.value.y
-            const halfScreenWidth = document.body.clientWidth / 2
-            const halfScreenHeight = document.body.clientHeight / 2
-            const padding = 500
-            Object.keys(_this.cardData).forEach(id => {
-              const card = _this.cardData[id]
-              if (
-                pageX < +card.x + padding + halfScreenWidth + card.width / 2 &&
-                pageX > +card.x - padding - halfScreenWidth - card.width / 2 &&
-                pageY < +card.y + padding + halfScreenHeight + card.height / 2 &&
-                pageY > +card.y - padding - halfScreenHeight - card.height / 2
-              ) {
-                showCardList.push(card.id)
-              }
-              if (card.onChoose) {
-                selectCardList.push(card.id)
-              }
-            })
-            // _this.showCardList = showCardList
-            _this.selectCardList = selectCardList
-            if (selectCardList.length) {
-              console.log(event)
-              _this.$refs.editor.style.transform = `translate3d(${event.page.x + 10}px, ${event.page.y + 10}px, 0)`
-            }
+            checkCards()
             // 更新URL
             const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2)
             const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2)
@@ -355,17 +346,38 @@ https://llx.life
       })
       // 双击页面
       .on('doubletap', function (event) {
-        const newCardX = event.x - document.body.clientWidth / 2 + +pagePostion.value.x
-        const newCardY = event.y - document.body.clientHeight / 2 + +pagePostion.value.y
-        const createTime = new Date().getTime()
-        _this.cardData[createTime] = {
-          id: createTime,
-          x: newCardX,
-          y: newCardY,
-          class: 'theme-blue',
-          content: '你好，世界！'
+        if (_this.editCheck) {
+          const newCardX = parseInt(event.x - document.body.clientWidth / 2 + +pagePostion.value.x)
+          const newCardY = parseInt(event.y - document.body.clientHeight / 2 + +pagePostion.value.y)
+          const card = {
+            "world": _this.$route.params.world,
+            "x": newCardX,
+            "y": newCardY,
+            "width": "110",
+            "height": "44",
+            "class": "theme-blue",
+            "content": "你好，世界！"
+          }
+          axios.post('//hasura.llx.ink/api/rest/card/add', {
+            "object": card
+          }, {
+            headers: {
+              'Content-Type': 'application/json',
+              'x-hasura-world': _this.$route.params.world,
+              'x-hasura-key': _this.editKey
+            }
+          }).then(res => {
+            const cardId = res?.data?.insert_hanakoi_card_one.id
+            if (cardId) {
+              const newCardData = {
+                id: cardId,
+                ...card
+              }
+              _this.cardData[cardId] = newCardData
+              _this.showCardList.push(cardId)
+            }
+          })
         }
-        _this.showCardList.push(createTime)
       })
 
     // 卡片拖拽
@@ -419,19 +431,6 @@ https://llx.life
         }
       })
 
-    const pageJump = (x = 0, y = 0) => {
-      lastPagePostion.value.x = pagePostion.value.x
-      lastPagePostion.value.y = pagePostion.value.y
-      moveDelta.value.x = +lastPagePostion.value.x - x
-      moveDelta.value.y = +lastPagePostion.value.y - y
-      const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2)
-      const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2)
-      this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } })
-    }
-
-    interact('.test1').on('tap', event => {
-      pageJump(200, 200)
-    })
     interact('.btn-home').on('tap', event => {
       pageJump()
     })
@@ -444,12 +443,12 @@ https://llx.life
       pagePostion.value.x = (+pagePostion.value.x + ((lastPagePostion.value.x - moveDelta.value.x) - pagePostion.value.x) * 0.1).toFixed(2)
       pagePostion.value.y = (+pagePostion.value.y + ((lastPagePostion.value.y - moveDelta.value.y) - pagePostion.value.y) * 0.1).toFixed(2)
       // 卡片
-      this.$refs.cardRef.forEach((item, index) => {
+      this.$refs.cardRef && this.$refs.cardRef.forEach((item, index) => {
         const cardId = item.dataset.id
         const x = -pagePostion.value.x + +item.dataset.x + document.body.clientWidth / 2 - item.clientWidth / 2 - 10
         const y = -pagePostion.value.y + +item.dataset.y + document.body.clientHeight / 2 - item.clientHeight / 2 - 10
         item.style.transform = `translate3D(${x}px, ${y}px, 0)`
-        if (this.cardData[cardId].onChoose && this.onMove) {
+        if (this.cardData[cardId]?.onChoose && this?.onMove) {
           this.$refs.cardRef[index].dataset.x = +this.cardData[cardId].x + moveCardDelta.value.x
           this.$refs.cardRef[index].dataset.y = +this.cardData[cardId].y + moveCardDelta.value.y
         }
@@ -484,37 +483,94 @@ https://llx.life
       const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2)
       const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2)
       this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } })
+      checkCards()
     })
 
-    // URL跳转
+    // 判断卡片是否选中 是否超出边界
+    const checkCards = (pageX = pagePostion.value.x, pageY = pagePostion.value.y) => {
+      let showCardList = []
+      let selectCardList = []
+      // const pageX = pagePostion.value.x
+      // const pageY = pagePostion.value.y
+      const halfScreenWidth = document.body.clientWidth / 2
+      const halfScreenHeight = document.body.clientHeight / 2
+      const padding = 500
+      Object.keys(this.cardData).forEach(id => {
+        const card = this.cardData[id]
+        if (
+          pageX < +card.x + padding + halfScreenWidth + card.width / 2 &&
+          pageX > +card.x - padding - halfScreenWidth - card.width / 2 &&
+          pageY < +card.y + padding + halfScreenHeight + card.height / 2 &&
+          pageY > +card.y - padding - halfScreenHeight - card.height / 2
+        ) {
+          showCardList.push(card.id)
+        }
+        if (card.onChoose) {
+          selectCardList.push(card.id)
+        }
+      })
+      this.showCardList = showCardList
+      this.selectCardList = selectCardList
+      if (selectCardList.length) {
+        this.$refs.editor.style.transform = `translate3d(${event.page.x + 10}px, ${event.page.y + 10}px, 0)`
+      }
+    }
+
+    // 页面跳转
+    const pageJump = (x = 0, y = 0) => {
+      lastPagePostion.value.x = pagePostion.value.x
+      lastPagePostion.value.y = pagePostion.value.y
+      moveDelta.value.x = +lastPagePostion.value.x - x
+      moveDelta.value.y = +lastPagePostion.value.y - y
+      const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2)
+      const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2)
+      this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } })
+      checkCards(x, y)
+    }
+
+    // 初始化
     setTimeout(() => {
+      // URL跳转
       if (this.$route.params.position) {
         const position = this.$route.params.position.split(',')
-        lastPagePostion.value.x = pagePostion.value.x
-        lastPagePostion.value.y = pagePostion.value.y
-        moveDelta.value.x = +lastPagePostion.value.x - position[0] * 100
-        moveDelta.value.y = +lastPagePostion.value.y - position[1] * 100
+        pagePostion.value.x = position[0] * 100
+        pagePostion.value.y = position[1] * 100
+        moveDelta.value.x = -position[0] * 100
+        moveDelta.value.y = -position[1] * 100
+        // lastPagePostion.value.x = pagePostion.value.x
+        // lastPagePostion.value.y = pagePostion.value.y
+        // moveDelta.value.x = +lastPagePostion.value.x - position[0] * 100
+        // moveDelta.value.y = +lastPagePostion.value.y - position[1] * 100
       }
+      // 获取卡片信息
+      axios.get('//hasura.llx.ink/api/rest/card/get', {
+        params: {
+          min_x: -5000,
+          max_x: 5000,
+          min_y: -5000,
+          max_y: 5000,
+        },
+        headers: {
+          'x-hasura-world': this.$route.params.world
+        }
+      }).then(res => {
+        console.log(res.data)
+        res.data.hanakoi_card.forEach(card => {
+          this.cardData[card.id] = card
+        })
+        checkCards()
+      })
     }, 0);
-
   }
 };
 </script>
 
 <template>
-  <img class="absolute" src="/flag-left.svg" alt />
-  <img class="absolute right-0" src="/flag-right.svg" alt />
   <p class="test absolute z-1">123</p>
-  <p class="test1 absolute z-1 mt-50">转移测试</p>
-  <div class="absolute z-1 mt-80">
-    <router-link to="/">Go to Home</router-link>
-    <router-link to="/edit">Go to About</router-link>
-  </div>
   <!-- 卡片 -->
   <div id="view" class="w-screen h-screen text-sm text-dark-200 font-default">
     <div
       v-for="(id, index) in showCardList"
-      :style="{ transform: `translate(${cardData[id].x}px, ${cardData[id].y}px)` }"
       :key="cardData[id].id"
       :data-id="cardData[id].id"
       :data-index="index"
@@ -524,7 +580,7 @@ https://llx.life
       ref="cardRef"
     >
       <p
-        v-if="$route.name == 'edit'"
+        v-if="editCheck"
         class="move absolute rounded-t bg-black/20 w-full h-2.5 transition opacity-0 group-hover:opacity-100"
       ></p>
       <CardContent :cardData="cardData[id]" />
@@ -532,7 +588,7 @@ https://llx.life
   </div>
   <!-- 选框 -->
   <div
-    class="selection absolute pointer-events-none w-10 h-10 bg-teal-200/20 border-teal-200 border-1 top-0 left-0"
+    class="selection absolute pointer-events-none bg-teal-200/20 border-teal-200 border-1 top-0 left-0"
   ></div>
   <!-- 编辑器 -->
   <div
@@ -540,7 +596,7 @@ https://llx.life
     class="absolute top-0 bg-light-50 border-2 border-black/20 rounded p-2 transition min-w-50 text-sm space-y-2"
     :class="[
       selectCardList[0] ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
-      $route.name != 'edit' && '!opacity-0 !pointer-events-none'
+      !editCheck && '!opacity-0 !pointer-events-none'
     ]"
   >
     <!-- 编辑器-单选 -->
@@ -616,29 +672,29 @@ https://llx.life
       <i class="iconfont icon-yuandian text-xl"></i>
     </p>
     <p
-      @click="this.onJump = !this.onJump"
+      @click="onJump = !onJump"
       class="bg-white/90 border-black/50 border-2 rounded-sm w-10 flex justify-center items-center opacity-50 transition hover:(opacity-100)"
-      :class="this.onJump ? '!opacity-100' : ''"
+      :class="onJump ? '!opacity-100' : ''"
     >
       <i class="iconfont icon-huojian text-xl"></i>
     </p>
   </div>
   <div
     class="absolute bottom-16 right-4 font-default bg-white/90 border-black/50 border-2 rounded-sm p-2 text-dark-50 text-sm transition opacity-0 pointer-events-none"
-    :class="this.onJump ? 'opacity-100 pointer-events-auto' : ''"
+    :class="onJump ? 'opacity-100 pointer-events-auto' : ''"
   >
     <p>系统初始化已完成……</p>
     <p>燃料确认充足……</p>
     <p>跃迁引擎已启动……</p>
     <p>请指定跳跃坐标……</p>
     <input
-      v-model="this.jumpTarget.x"
+      v-model="jumpTarget.x"
       class="bg-gray-100 p-1 w-22 rounded-sm border-black/20 border-2 mr-2"
       placeholder="x"
       type="text"
     />
     <input
-      v-model="this.jumpTarget.y"
+      v-model="jumpTarget.y"
       class="bg-gray-100 p-1 w-22 rounded-sm border-black/20 border-2 mr-2"
       placeholder="y"
       type="text"
@@ -655,17 +711,27 @@ https://llx.life
   </p>
   <div
     class="absolute bottom-16 left-4 font-default bg-white/90 border-black/50 border-2 rounded-sm p-2 text-dark-50 text-sm transition opacity-0 pointer-events-none"
-    :class="this.openEdit ? 'opacity-100 pointer-events-auto' : ''"
+    :class="openEdit ? 'opacity-100 pointer-events-auto' : ''"
   >
-    <p>正在启动创造模式……</p>
-    <p>验证用户身份中……</p>
-    <p>请输入您的超级密钥……</p>
-    <input
-      class="bg-gray-100 p-1 w-22 rounded-sm border-black/20 border-2 mr-2"
-      type="text"
-    />
-    <p class="text-blue-dark inline-block">确认密钥</p>
+    <template v-if="editCheck">
+      <p>当前正处于创造模式中</p>
+      <p @click="editCheck = false" class="text-blue-dark inline-block">关闭创造模式</p>
+    </template>
+    <template v-else>
+      <p>正在启动创造模式……</p>
+      <p>验证用户身份中……</p>
+      <p>请输入您的超级密钥……</p>
+      <input
+        class="bg-gray-100 p-1 w-22 rounded-sm border-black/20 border-2 mr-2"
+        type="password"
+        v-model="editKey"
+      />
+      <p @click="checkEdit()" class="text-blue-dark inline-block">确认密钥</p>
+    </template>
   </div>
+  <!-- 旗帜装饰 -->
+  <img class="absolute top-0" src="/flag-left.svg" alt />
+  <img class="absolute top-0 right-0" src="/flag-right.svg" alt />
 </template>
 
 <style>

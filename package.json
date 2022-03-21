@@ -8,6 +8,7 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "axios": "^0.26.1",
     "hammerjs": "^2.0.8",
     "interactjs": "^1.10.11",
     "lodash": "^4.17.21",
