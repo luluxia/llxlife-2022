@@ -144,11 +144,6 @@ https://llx.life
       cardBlock: []
     };
   },
-  watch: {
-    '$route.name': name => {
-      console.log(name)
-    }
-  },
   components: {
     CardContent,
     EditorBtn
@@ -167,6 +162,7 @@ https://llx.life
           this.cardData[id].y = +lastCard.y + lastCard.height / 2 + selfCard.height / 2 + 10
         }
       })
+      this.updateSelectedCardPostion()
     },
     horizontalDistribute() {
       const sortedList = _.sortBy(this.selectCardList, id => {
@@ -181,6 +177,7 @@ https://llx.life
           this.cardData[id].x = +lastCard.x + lastCard.width / 2 + this.cardData[id].width / 2 + 10
         }
       })
+      this.updateSelectedCardPostion()
     },
     alignLeft() {
       const minX = _.min(this.selectCardList.map(id => {
@@ -189,20 +186,22 @@ https://llx.life
       this.selectCardList.forEach(id => {
         this.cardData[id].x = minX + this.cardData[id].width / 2
       })
+      this.updateSelectedCardPostion()
     },
     centerHorizontally() {
       this.selectCardList.forEach(id => {
         this.cardData[id].x = this.cardData[this.selectCardList[0]].x
       })
+      this.updateSelectedCardPostion()
     },
     alignRight() {
       const maxX = _.max(this.selectCardList.map(id => {
         return +this.cardData[id].x + this.cardData[id].width / 2
       }))
-      console.log(maxX)
       this.selectCardList.forEach(id => {
         this.cardData[id].x = maxX - this.cardData[id].width / 2
       })
+      this.updateSelectedCardPostion()
     },
     alignTop() {
       const minY = _.min(this.selectCardList.map(id => {
@@ -211,11 +210,13 @@ https://llx.life
       this.selectCardList.forEach(id => {
         this.cardData[id].y = minY + this.cardData[id].height / 2
       })
+      this.updateSelectedCardPostion()
     },
     centerVerticaly() {
       this.selectCardList.forEach(id => {
         this.cardData[id].y = this.cardData[this.selectCardList[0]].y
       })
+      this.updateSelectedCardPostion()
     },
     alignBottom() {
       const maxY = _.max(this.selectCardList.map(id => {
@@ -224,12 +225,12 @@ https://llx.life
       this.selectCardList.forEach(id => {
         this.cardData[id].y = maxY - this.cardData[id].height / 2
       })
+      this.updateSelectedCardPostion()
     },
     removeCard() {
       this.showCardList = this.showCardList.filter(id => {
         return !this.selectCardList.includes(id)
       })
-      console.log(this.showCardList)
       this.selectCardList.forEach(id => {
         delete this.cardData[id]
       })
@@ -252,13 +253,12 @@ https://llx.life
       const blockY = parseInt(y / 5000)
       if (!this.cardBlock.includes(`${blockX},${blockY}`)) {
         this.cardBlock.push(`${blockX},${blockY}`)
-        const { data: res } =  await axios.get('//hasura.llx.ink/api/rest/card/get', {
-          params: {
-            min_x: -5000 + blockX * 5000,
-            max_x: 5000 + blockX * 5000,
-            min_y: -5000 + blockY * 5000,
-            max_y: 5000 + blockY * 5000,
-          },
+        const { data: res } =  await axios.post('//hasura.llx.ink/api/rest/card/get', {
+          min_x: -5000 + blockX * 5000,
+          max_x: 5000 + blockX * 5000,
+          min_y: -5000 + blockY * 5000,
+          max_y: 5000 + blockY * 5000,
+        }, {
           headers: {
             'x-hasura-world': this.$route.params.world
           }
@@ -271,6 +271,24 @@ https://llx.life
       }
       return new Promise((resolve, reject) => {
         resolve(this)
+      })
+    },
+    updateCardPosition(id, x, y) {
+      axios.post('//hasura.llx.ink/api/rest/card/position/update', {
+        id: +id,
+        x: parseInt(x),
+        y: parseInt(y)
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-hasura-world': this.$route.params.world,
+          'x-hasura-key': this.editKey
+        }
+      })
+    },
+    updateSelectedCardPostion() {
+      this.selectCardList.forEach(cardId => {
+        this.updateCardPosition(cardId, this.cardData[cardId].x, this.cardData[cardId].y)
       })
     }
   },
@@ -348,7 +366,21 @@ https://llx.life
             const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2)
             const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2)
             _this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } });
-            _this.getCards(parseInt(pagePostion.value.x), parseInt(pagePostion.value.y)).then(() => {checkCards()})
+            // 更新卡片
+            _this.getCards(parseInt(pagePostion.value.x), parseInt(pagePostion.value.y)).then(() => {
+              checkCards()
+              let selectCardList = []
+              Object.keys(_this.cardData).forEach(id => {
+                const card = _this.cardData[id]
+                if (card.onChoose) {
+                  selectCardList.push(card.id)
+                }
+              })
+              _this.selectCardList = selectCardList
+              if (selectCardList.length) {
+                _this.$refs.editor.style.transform = `translate3d(${event.page.x + 10}px, ${event.page.y + 10}px, 0)`
+              }
+            })
           }
         }
       })
@@ -356,19 +388,28 @@ https://llx.life
       .on('tap', event => {
         // 清除选中状态
         if (event.target.id == 'view') {
-          // Object.keys(this.cardData).forEach(id => {
-          //   this.cardData[id].onChoose = false
-          // })
           this.selectCardList.forEach(id => {
             const cardDom = document.querySelector(`[data-id="${id}"]`)
             this.cardData[id].onChoose = false
             this.cardData[id].width = cardDom.clientWidth
             this.cardData[id].height = cardDom.clientHeight
           })
+          // 保存卡片数据
+          if (this.selectCardList.length == 1) {
+            const card = this.cardData[this.selectCardList[0]]
+            const cardData = _.pick(card, ['id', 'world', 'x', 'y', 'width', 'height', 'class', 'content'])
+            axios.post('//hasura.llx.ink/api/rest/card/change', cardData, {
+              headers: {
+                'Content-Type': 'application/json',
+                'x-hasura-world': this.$route.params.world,
+                'x-hasura-key': this.editKey
+              }
+            })
+          }
           this.selectCardList = []
         }
       })
-      // 双击页面
+      // 双击页面插入卡片
       .on('doubletap', function (event) {
         if (_this.editCheck) {
           const newCardX = parseInt(event.x - document.body.clientWidth / 2 + +pagePostion.value.x)
@@ -428,15 +469,18 @@ https://llx.life
           end(event) {
             const dom = event.target
             const cardId = dom.dataset.id
-            _this.cardData[cardId].onChoose = false
-            _this.onMove = false
-
-            allCardDom = document.querySelectorAll('.card')
-            allCardDom.forEach(card => {
+            // 单选
+            if (!_this.selectCardList.length) {
+              _this.cardData[cardId].onChoose = false
+              _this.updateCardPosition(cardId, dom.dataset.x, dom.dataset.y)
+            }
+            _this.$refs.cardRef.forEach(card => {
               const cardId = card.dataset.id
               _this.cardData[cardId].x = card.dataset.x
               _this.cardData[cardId].y = card.dataset.y
             })
+            _this.updateSelectedCardPostion()
+            _this.onMove = false
           }
         }
       })
@@ -512,12 +556,11 @@ https://llx.life
     document.body.addEventListener('wheel', _.throttle(async () => {
       await this.getCards(parseInt(pagePostion.value.x), parseInt(pagePostion.value.y))
       checkCards()
-    }, 5000, { 'trailing': false }))
+    }, 2000, { 'trailing': false }))
 
-    // 判断卡片是否选中 是否超出边界
+    // 是否超出边界
     const checkCards = (pageX = pagePostion.value.x, pageY = pagePostion.value.y) => {
       let showCardList = []
-      let selectCardList = []
       // const pageX = pagePostion.value.x
       // const pageY = pagePostion.value.y
       const halfScreenWidth = document.body.clientWidth / 2
@@ -533,15 +576,8 @@ https://llx.life
         ) {
           showCardList.push(card.id)
         }
-        if (card.onChoose) {
-          selectCardList.push(card.id)
-        }
       })
       this.showCardList = showCardList
-      this.selectCardList = selectCardList
-      if (selectCardList.length) {
-        this.$refs.editor.style.transform = `translate3d(${event.page.x + 10}px, ${event.page.y + 10}px, 0)`
-      }
     }
 
     // 页面跳转
@@ -572,7 +608,7 @@ https://llx.life
         // moveDelta.value.y = +lastPagePostion.value.y - position[1] * 100
       }
       // 获取卡片信息
-      await this.getCards()
+      await this.getCards(pagePostion.value.x, pagePostion.value.y)
       checkCards()
     }, 0);
   }
@@ -580,7 +616,7 @@ https://llx.life
 </script>
 
 <template>
-  <p class="test absolute z-1">123</p>
+  <p class="test absolute z-1"></p>
   <!-- 卡片 -->
   <div id="view" class="w-screen h-screen text-sm text-dark-200 font-default">
     <div

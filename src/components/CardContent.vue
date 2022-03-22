@@ -14,10 +14,17 @@ const md = new markdownit()
 </template>
 
 <style lang="sass">
+
+@keyframes appear
+  from
+    opacity: 0
+  to
+    opacity: 1
 .theme-purple
   h1
     background: #A39EBC
 .card-content
+  animation: appear 0.2s ease-out
   p
     letter-spacing: 1px !important
     line-height: 1.7 !important
