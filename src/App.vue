@@ -9,129 +9,129 @@ export default {
   data() {
     return {
       cardData: {
-        1: {
-          id: 1,
-          x: 0,
-          y: 0,
-          width: 590,
-          height: 444.67,
-          lastChangeTime: 1,
-          class: '',
-          content: '![logo](http://localhost:3000/logo.svg)'
-        },
-        2: {
-          id: 2,
-          x: 100,
-          y: 100,
-          width: 124,
-          height: 60,
-          lastChangeTime: 1,
-          class: 'theme-blue',
-          content: '这是一张卡片1'
-        },
-        4: {
-          id: 4,
-          x: 100,
-          y: 200,
-          width: 124,
-          height: 60,
-          lastChangeTime: 1,
-          class: 'theme-pink',
-          content: '这是一张卡片22'
-        },
-        5: {
-          id: 5,
-          x: 100,
-          y: 300,
-          width: 124,
-          height: 60,
-          lastChangeTime: 1,
-          class: 'theme-yellow',
-          content: '这是一张卡片333'
-        },
-        6: {
-          id: 6,
-          x: 100,
-          y: 400,
-          width: 124,
-          height: 60,
-          lastChangeTime: 1,
-          class: 'theme-green',
-          content: '这是一张卡片4444'
-        },
-        7: {
-          id: 7,
-          x: 100,
-          y: 500,
-          width: 124,
-          height: 60,
-          lastChangeTime: 1,
-          class: 'theme-red',
-          content: '这是一张卡片55555'
-        },
-        3: {
-          id: 3,
-          x: 500,
-          y: 200,
-          width: 138,
-          height: 60,
-          lastChangeTime: 1,
-          class: 'w-100 theme-purple',
-          content: `
-# 一级标题
+//         1: {
+//           id: 1,
+//           x: 0,
+//           y: 0,
+//           width: 590,
+//           height: 444.67,
+//           lastChangeTime: 1,
+//           class: '',
+//           content: '![logo](http://localhost:3000/logo.svg)'
+//         },
+//         2: {
+//           id: 2,
+//           x: 100,
+//           y: 100,
+//           width: 124,
+//           height: 60,
+//           lastChangeTime: 1,
+//           class: 'theme-blue',
+//           content: '这是一张卡片1'
+//         },
+//         4: {
+//           id: 4,
+//           x: 100,
+//           y: 200,
+//           width: 124,
+//           height: 60,
+//           lastChangeTime: 1,
+//           class: 'theme-pink',
+//           content: '这是一张卡片22'
+//         },
+//         5: {
+//           id: 5,
+//           x: 100,
+//           y: 300,
+//           width: 124,
+//           height: 60,
+//           lastChangeTime: 1,
+//           class: 'theme-yellow',
+//           content: '这是一张卡片333'
+//         },
+//         6: {
+//           id: 6,
+//           x: 100,
+//           y: 400,
+//           width: 124,
+//           height: 60,
+//           lastChangeTime: 1,
+//           class: 'theme-green',
+//           content: '这是一张卡片4444'
+//         },
+//         7: {
+//           id: 7,
+//           x: 100,
+//           y: 500,
+//           width: 124,
+//           height: 60,
+//           lastChangeTime: 1,
+//           class: 'theme-red',
+//           content: '这是一张卡片55555'
+//         },
+//         3: {
+//           id: 3,
+//           x: 500,
+//           y: 200,
+//           width: 138,
+//           height: 60,
+//           lastChangeTime: 1,
+//           class: 'w-100 theme-purple',
+//           content: `
+// # 一级标题
 
-## 二级标题
+// ## 二级标题
 
-### 三级标题
+// ### 三级标题
 
-#### 四级标题
+// #### 四级标题
 
-##### 五级标题
+// ##### 五级标题
 
-###### 六级标题
+// ###### 六级标题
 
----
+// ---
 
-**加粗文本**
+// **加粗文本**
 
-*斜体文本*
+// *斜体文本*
 
-~~删除文本~~
+// ~~删除文本~~
 
-> 引用文本
+// > 引用文本
 
-- 列表
-- 列表
-  - 列表
-  - 列表
+// - 列表
+// - 列表
+//   - 列表
+//   - 列表
 
-1. 列表
-2. 列表
+// 1. 列表
+// 2. 列表
 
-\`代码\`
+// \`代码\`
 
-\`\`\`
-代码块
-\`\`\`
+// \`\`\`
+// 代码块
+// \`\`\`
 
-[链接](https://llx.life)
+// [链接](https://llx.life)
 
-[链接(有alt)](https://llx.life "陆陆侠的生活")
+// [链接(有alt)](https://llx.life "陆陆侠的生活")
 
-https://llx.life
+// https://llx.life
 
-![图片](https://octodex.github.com/images/minion.png)
+// ![图片](https://octodex.github.com/images/minion.png)
 
-欢迎收看新闻 54 台。我是吉莉安·乔丹。
+// 欢迎收看新闻 54 台。我是吉莉安·乔丹。
 
-首先为各位观众带来的是本地新闻。
+// 首先为各位观众带来的是本地新闻。
 
-荒坂公司总部灾难 54 周年的纪念日很快就要到了。
+// 荒坂公司总部灾难 54 周年的纪念日很快就要到了。
 
-2023 年，在荒坂夜之城总部所引爆的一颗战术原子弹，为整座城市带来了深入骨髓的末日灾难。
+// 2023 年，在荒坂夜之城总部所引爆的一颗战术原子弹，为整座城市带来了深入骨髓的末日灾难。
 
-          `
-        }
+//           `
+//         }
       },
       showCardList: [],
       selectCardList: [],
@@ -141,7 +141,8 @@ https://llx.life
       editKey: '',
       editCheck: false,
       jumpTarget: { x: null, y: null },
-      cardBlock: []
+      cardBlock: [],
+      zIndexTemp: 0,
     };
   },
   components: {
@@ -233,6 +234,15 @@ https://llx.life
       })
       this.selectCardList.forEach(id => {
         delete this.cardData[id]
+        axios.post('//hasura.llx.ink/api/rest/card/remove', {
+          id: +id
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-hasura-world': this.$route.params.world,
+            'x-hasura-key': this.editKey
+          }
+        })
       })
       this.selectCardList = []
     },
@@ -284,13 +294,32 @@ https://llx.life
           'x-hasura-world': this.$route.params.world,
           'x-hasura-key': this.editKey
         }
+      }).then(res => {
+        const returnData = res.data.update_hanakoi_card_by_pk
+        const id = returnData.id
+        const lastChangeTime = returnData.lastChangeTime
+        this.cardData[id].lastChangeTime = lastChangeTime
       })
     },
     updateSelectedCardPostion() {
       this.selectCardList.forEach(cardId => {
         this.updateCardPosition(cardId, this.cardData[cardId].x, this.cardData[cardId].y)
       })
+    },
+    sortCard() {
+      const sortedList = _.sortBy(this.showCardList, id => {
+        return this.cardData[id].lastChangeTime
+      })
+      sortedList.forEach((id, index) => {
+        this.cardData[id].zIndex = index
+      })
     }
+  },
+  watch: {
+    'showCardList.length'(length) {
+      this.sortCard()
+      this.zIndexTemp = length
+    },
   },
   mounted() {
     const pagePostion = ref({ x: 0, y: 0 })     // 当前页面的位置
@@ -404,6 +433,11 @@ https://llx.life
                 'x-hasura-world': this.$route.params.world,
                 'x-hasura-key': this.editKey
               }
+            }).then(res => {
+              const returnData = res.data.update_hanakoi_card_by_pk
+              const id = returnData.id
+              const lastChangeTime = returnData.lastChangeTime
+              this.cardData[id].lastChangeTime = lastChangeTime
             })
           }
           this.selectCardList = []
@@ -461,6 +495,13 @@ https://llx.life
             moveCardDelta.value.y = event.clientY - event.y0
 
             _this.onMove = true
+
+            // 更新卡片层级
+            _this.zIndexTemp++
+            _this.cardData[cardId].zIndex = _this.zIndexTemp
+            _this.selectCardList.forEach(id => {
+              _this.cardData[id].zIndex = _this.zIndexTemp
+            })
           },
           move(event) {
             moveCardDelta.value.x = event.clientX - event.x0
@@ -476,8 +517,8 @@ https://llx.life
             }
             _this.$refs.cardRef.forEach(card => {
               const cardId = card.dataset.id
-              _this.cardData[cardId].x = card.dataset.x
-              _this.cardData[cardId].y = card.dataset.y
+              _this.cardData[cardId].x = parseInt(card.dataset.x)
+              _this.cardData[cardId].y = parseInt(card.dataset.y)
             })
             _this.updateSelectedCardPostion()
             _this.onMove = false
@@ -489,12 +530,14 @@ https://llx.life
         Object.keys(this.cardData).forEach(id => {
           this.cardData[id].onChoose = false
         })
-        if (event.target.parentNode.dataset.id) {
+        if (event.target.parentNode.dataset.id && this.editCheck) {
           const cardId = event.target.parentNode.dataset.id
           this.cardData[cardId].onChoose = !this.cardData[cardId].onChoose
           if (this.cardData[cardId].onChoose) {
             this.selectCardList = [+cardId]
             this.$refs.editor.style.transform = `translate3d(${event.x + 10}px, ${event.y + 10}px, 0)`
+            this.zIndexTemp++
+            this.cardData[cardId].zIndex = this.zIndexTemp
           }
         }
       })
@@ -506,6 +549,9 @@ https://llx.life
       pageJump(this.jumpTarget.x * 100, this.jumpTarget.y * 100)
     })
 
+    const halfClientWidth = document.body.clientWidth / 2
+    const halfClientHeight = document.body.clientHeight / 2
+
     const render = () => {
       // 缓动
       pagePostion.value.x = (+pagePostion.value.x + ((lastPagePostion.value.x - moveDelta.value.x) - pagePostion.value.x) * 0.1).toFixed(2)
@@ -513,8 +559,8 @@ https://llx.life
       // 卡片
       this.$refs.cardRef && this.$refs.cardRef.forEach((item, index) => {
         const cardId = item.dataset.id
-        const x = -pagePostion.value.x + +item.dataset.x + document.body.clientWidth / 2 - item.clientWidth / 2 - 10
-        const y = -pagePostion.value.y + +item.dataset.y + document.body.clientHeight / 2 - item.clientHeight / 2 - 10
+        const x = -pagePostion.value.x + +item.dataset.x + halfClientWidth - item.clientWidth / 2 - 10
+        const y = -pagePostion.value.y + +item.dataset.y + halfClientHeight - item.clientHeight / 2 - 10
         item.style.transform = `translate3D(${x}px, ${y}px, 0)`
         if (this.cardData[cardId]?.onChoose && this?.onMove) {
           this.$refs.cardRef[index].dataset.x = +this.cardData[cardId].x + moveCardDelta.value.x
@@ -523,16 +569,16 @@ https://llx.life
       })
       document.body.style.backgroundPositionX = `${-pagePostion.value.x}px`
       document.body.style.backgroundPositionY = `${-pagePostion.value.y}px`
-      document.querySelector('.test').innerHTML = `
-        <p>pagePostionX  ${pagePostion.value.x}</p>
-        <p>pagePostionY  ${pagePostion.value.y}</p>
-        <p>moveDeltaX  ${moveDelta.value.x}</p>
-        <p>moveDeltaY  ${moveDelta.value.y}</p>
-        <p>lastPagePostionX  ${lastPagePostion.value.x}</p>
-        <p>lastPagePostionY  ${lastPagePostion.value.y}</p>
-        <p>showCardList  ${this.showCardList}</p>
-        <p>selectCardList ${this.selectCardList}</p>
-      `
+      // document.querySelector('.test').innerHTML = `
+      //   <p>pagePostionX  ${pagePostion.value.x}</p>
+      //   <p>pagePostionY  ${pagePostion.value.y}</p>
+      //   <p>moveDeltaX  ${moveDelta.value.x}</p>
+      //   <p>moveDeltaY  ${moveDelta.value.y}</p>
+      //   <p>lastPagePostionX  ${lastPagePostion.value.x}</p>
+      //   <p>lastPagePostionY  ${lastPagePostion.value.y}</p>
+      //   <p>showCardList  ${this.showCardList}</p>
+      //   <p>selectCardList ${this.selectCardList}</p>
+      // `
       document.querySelector('.coordinate').innerHTML = `
         ${(pagePostion.value.x / 100).toFixed(2)} , ${(pagePostion.value.y / 100).toFixed(2)}
       `
@@ -626,6 +672,7 @@ https://llx.life
       :data-index="index"
       :data-x="cardData[id].x"
       :data-y="cardData[id].y"
+      :style="{zIndex: cardData[id].zIndex}"
       class="card absolute group border-10 border-transparent"
       ref="cardRef"
     >
@@ -643,7 +690,7 @@ https://llx.life
   <!-- 编辑器 -->
   <div
     ref="editor"
-    class="absolute top-0 bg-light-50 border-2 border-black/20 rounded p-2 transition min-w-50 text-sm space-y-2"
+    class="absolute top-0 bg-light-50 border-2 border-black/20 rounded p-2 transition min-w-50 text-sm space-y-2 z-9999"
     :class="[
       selectCardList[0] ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
       !editCheck && '!opacity-0 !pointer-events-none'
@@ -664,7 +711,7 @@ https://llx.life
           type="text"
         />
       </div>
-      <p class="font-bold text-dark-50">主题</p>
+      <!-- <p class="font-bold text-dark-50">主题</p>
       <div class="flex justify-between space-x-1">
         <div class="w-full h-5 rounded border-2 border-transparent bg-purple"></div>
         <div class="w-full h-5 rounded border-2 border-transparent bg-blue"></div>
@@ -674,7 +721,7 @@ https://llx.life
         <div class="w-full h-5 rounded border-2 border-transparent bg-red"></div>
         <div class="w-full h-5 rounded border-2 border-transparent bg-gray-200"></div>
         <div class="w-full h-5 rounded border-2"></div>
-      </div>
+      </div> -->
       <p class="font-bold text-dark-50">内容</p>
       <textarea
         v-if="selectCardList[0]"
@@ -711,7 +758,7 @@ https://llx.life
     </template>
   </div>
   <!-- 控制台 -->
-  <div class="absolute bottom-4 right-4 font-default h-10 flex space-x-1">
+  <div class="fixed bottom-4 right-4 font-default h-10 flex space-x-1 z-9999">
     <p class="text-center text-sm bg-white/90 border-black/50 border-2 rounded-sm p-2">
       主世界 (
       <span class="coordinate"></span>)
@@ -730,7 +777,7 @@ https://llx.life
     </p>
   </div>
   <div
-    class="absolute bottom-16 right-4 font-default bg-white/90 border-black/50 border-2 rounded-sm p-2 text-dark-50 text-sm transition opacity-0 pointer-events-none"
+    class="fixed bottom-16 right-4 font-default bg-white/90 border-black/50 border-2 rounded-sm p-2 text-dark-50 text-sm transition opacity-0 pointer-events-none z-9999"
     :class="onJump ? 'opacity-100 pointer-events-auto' : ''"
   >
     <p>系统初始化已完成……</p>
@@ -754,13 +801,13 @@ https://llx.life
   <!-- 编辑模式 -->
   <p
     @click="this.openEdit = !this.openEdit"
-    class="absolute bottom-4 left-4 font-default bg-white/90 border-black/50 border-2 rounded-sm w-10 h-10 flex justify-center items-center opacity-0 transition hover:(opacity-100)"
+    class="fixed bottom-4 left-4 font-default bg-white/90 border-black/50 border-2 rounded-sm w-10 h-10 flex justify-center items-center z-9999 opacity-0 transition hover:(opacity-100)"
     :class="this.openEdit ? '!opacity-100' : ''"
   >
     <i class="iconfont icon-bianji text-xl"></i>
   </p>
   <div
-    class="absolute bottom-16 left-4 font-default bg-white/90 border-black/50 border-2 rounded-sm p-2 text-dark-50 text-sm transition opacity-0 pointer-events-none"
+    class="fixed bottom-16 left-4 font-default bg-white/90 border-black/50 border-2 rounded-sm p-2 text-dark-50 text-sm z-9999 transition opacity-0 pointer-events-none"
     :class="openEdit ? 'opacity-100 pointer-events-auto' : ''"
   >
     <template v-if="editCheck">
@@ -780,8 +827,8 @@ https://llx.life
     </template>
   </div>
   <!-- 旗帜装饰 -->
-  <img class="absolute top-0" src="/flag-left.svg" alt />
-  <img class="absolute top-0 right-0" src="/flag-right.svg" alt />
+  <!-- <img class="absolute top-0 z-9999" src="/flag-left.svg" alt />
+  <img class="absolute top-0 right-0 z-9999" src="/flag-right.svg" alt /> -->
 </template>
 
 <style>

@@ -6,7 +6,7 @@ const md = new markdownit()
 <template>
   <div
     v-html="md.render(cardData.content)"
-    class="card-content rounded-sm p-2 border-transparent border-2 space-y-4 transition group-hover:(border-black/20)"
+    class="card-content rounded-sm p-2 border-transparent border-2 space-y-4 w-max transition group-hover:(!border-black/20)"
     :class="`
     ${cardData.onChoose ? '!border-black/20' : ''} 
     ${cardData.class}`"
@@ -23,6 +23,21 @@ const md = new markdownit()
 .theme-purple
   h1
     background: #A39EBC
+.theme-blue
+  h1
+    background: #89D7F0
+.theme-pink
+  h1
+    background: #FFBACD
+.theme-yellow
+  h1
+    background: #FFD08B
+.theme-green
+  h1
+    background: #9EDA92
+.theme-red
+  h1
+    background: #B48081
 .card-content
   animation: appear 0.2s ease-out
   p

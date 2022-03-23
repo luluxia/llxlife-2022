@@ -46,6 +46,6 @@ export default defineConfig({
     'theme-red': 'bg-red-light !border-red text-red-dark',
   },
   safelist: [
-    range(10, 10, 10).map(i => `w-${i}`),
+    range(10, 10, 10).map(i => `!w-${i}`),
   ],
 });
