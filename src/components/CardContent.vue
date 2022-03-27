@@ -6,7 +6,7 @@ const md = new markdownit()
 <template>
   <div
     v-html="md.render(cardData.content)"
-    class="card-content rounded-sm p-2 border-transparent border-2 space-y-4 w-max transition group-hover:(!border-black/20)"
+    class="card-content rounded-sm p-2 border-transparent border-2 space-y-2 w-max transition hover:(!border-black/20)"
     :class="`
     ${cardData.onChoose ? '!border-black/20' : ''} 
     ${cardData.class}`"
@@ -20,76 +20,41 @@ const md = new markdownit()
     opacity: 0
   to
     opacity: 1
-.theme-purple
+@mixin colors($c1, $c2)
+  background: rgb(255 255 255 / 80%)
+  border-color: $c1 !important
   h1
-    background: #A39EBC
-.theme-blue
-  h1
-    background: #89D7F0
-.theme-pink
-  h1
-    background: #FFBACD
-.theme-yellow
-  h1
-    background: #FFD08B
-.theme-green
-  h1
-    background: #9EDA92
-.theme-red
-  h1
-    background: #B48081
+    background: $c2
 .card-content
   animation: appear 0.2s ease-out
-  p
-    letter-spacing: 1px !important
-    line-height: 1.7 !important
-    min-height: 1em !important
-    box-sizing: border-box !important
-    word-wrap: break-word !important
-    text-align: justify
-    // margin: 20px 0 !important
-  blockquote
-    border-left: 4px solid #42b983
-    padding: 0 15px !important
-    margin: 0px
-  strong
-    font-weight: bold
-  body
-    font-size: 15px
-  pre
-    background-color: #f8f8f8
-    border-radius: 3px
-    word-wrap: break-word
-    padding: 12px 13px
-    font-size: 13px
-  h1,h2,h3,h4,h5,h6
-    word-break: break-all !important
-    line-height: 1.2
-    text-align: left
-    font-weight: normal
-    position: relative
-  h1
-    color: #fff
-    text-align: center
-    padding: 0.5em
-    border-radius: 2px
+  font-family: "LXGW WenKai Screen", sans-serif !important
+  color: #888
   a
-    color: #42b983 !important
-    text-decoration: none !important
-  ul, ol
-    padding-left: 30px
-  li
-    line-height: 24px
-  hr
-    border-bottom: 2px dashed #ddd
-  pre
-    background: #f2f2f2 !important
-    padding: 12px 13px
-  code
-    margin: 0 2px
-    padding: 3px 5px
-    color: #e96900
-    border-radius: 2px
-    white-space: inherit
-    background-color: #f8f8f8
+    color: #888
+  img
+    max-width: 100%
+  h1
+    display: inline-block
+    position: relative
+    left: -1em
+    margin: 0
+    padding: 0.3em 1em 0.3em 1.1em
+    color: #fff
+    border-radius: 0.1em
+    padding: 0.3em 1em 0.3em 1.1em
+    font-size: 1.25em
+    line-height: 1
+    letter-spacing: 0.1em !important
+.purple
+  @include colors(#A39EBC, #857988)
+.blue
+  @include colors(#89D7F0, #2EBAF5)
+.pink
+  @include colors(#FFBACD, #FF8EA3)
+.yellow
+  @include colors(#FFD08B, #FFAC5E)
+.green
+  @include colors(#9EDA92, #7FBF4F)
+.red
+  @include colors(#B48081, #A66869)
 </style>

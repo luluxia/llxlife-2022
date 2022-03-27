@@ -141,7 +141,7 @@ export default {
       const blockY = parseInt(y / 5000)
       if (!this.cardBlock.includes(`${blockX},${blockY}`)) {
         this.cardBlock.push(`${blockX},${blockY}`)
-        const { data: res } =  await axios.post(this.url + 'card/get', {
+        const { data: res } = await axios.post(this.url + 'card/get', {
           min_x: -5000 + blockX * 5000,
           max_x: 5000 + blockX * 5000,
           min_y: -5000 + blockY * 5000,
@@ -547,7 +547,7 @@ export default {
 
 <template>
   <!-- 卡片 -->
-  <div id="view" class="w-screen h-screen text-sm">
+  <div id="view" class="w-screen h-screen">
     <div
       v-for="(id, index) in showCardList"
       :key="cardData[id].id"
@@ -555,7 +555,7 @@ export default {
       :data-index="index"
       :data-x="cardData[id].x"
       :data-y="cardData[id].y"
-      :style="{zIndex: cardData[id].zIndex}"
+      :style="{ zIndex: cardData[id].zIndex }"
       class="card fixed group border-10 border-transparent"
       ref="cardRef"
     >
@@ -604,7 +604,7 @@ export default {
         <div class="w-full h-5 rounded border-2 border-transparent bg-red"></div>
         <div class="w-full h-5 rounded border-2 border-transparent bg-gray-200"></div>
         <div class="w-full h-5 rounded border-2"></div>
-      </div> -->
+      </div>-->
       <p class="font-bold text-dark-50">内容</p>
       <textarea
         v-if="selectCardList[0]"
@@ -714,11 +714,13 @@ export default {
 
 <style>
 @import url(//at.alicdn.com/t/font_3228461_apeclwa2cej.css);
+@import "lxgw-wenkai-screen-webfont/style.css";
 * {
   margin: 0;
   padding: 0;
 }
 body {
+  font-family: "LXGW WenKai Screen", sans-serif !important;
   background: #fffaf3;
   background-image: url("/bg.png");
   background-size: 80%;
