@@ -8,141 +8,18 @@ import EditorBtn from './components/EditorBtn.vue'
 export default {
   data() {
     return {
-      cardData: {
-//         1: {
-//           id: 1,
-//           x: 0,
-//           y: 0,
-//           width: 590,
-//           height: 444.67,
-//           lastChangeTime: 1,
-//           class: '',
-//           content: '![logo](http://localhost:3000/logo.svg)'
-//         },
-//         2: {
-//           id: 2,
-//           x: 100,
-//           y: 100,
-//           width: 124,
-//           height: 60,
-//           lastChangeTime: 1,
-//           class: 'theme-blue',
-//           content: '这是一张卡片1'
-//         },
-//         4: {
-//           id: 4,
-//           x: 100,
-//           y: 200,
-//           width: 124,
-//           height: 60,
-//           lastChangeTime: 1,
-//           class: 'theme-pink',
-//           content: '这是一张卡片22'
-//         },
-//         5: {
-//           id: 5,
-//           x: 100,
-//           y: 300,
-//           width: 124,
-//           height: 60,
-//           lastChangeTime: 1,
-//           class: 'theme-yellow',
-//           content: '这是一张卡片333'
-//         },
-//         6: {
-//           id: 6,
-//           x: 100,
-//           y: 400,
-//           width: 124,
-//           height: 60,
-//           lastChangeTime: 1,
-//           class: 'theme-green',
-//           content: '这是一张卡片4444'
-//         },
-//         7: {
-//           id: 7,
-//           x: 100,
-//           y: 500,
-//           width: 124,
-//           height: 60,
-//           lastChangeTime: 1,
-//           class: 'theme-red',
-//           content: '这是一张卡片55555'
-//         },
-//         3: {
-//           id: 3,
-//           x: 500,
-//           y: 200,
-//           width: 138,
-//           height: 60,
-//           lastChangeTime: 1,
-//           class: 'w-100 theme-purple',
-//           content: `
-// # 一级标题
-
-// ## 二级标题
-
-// ### 三级标题
-
-// #### 四级标题
-
-// ##### 五级标题
-
-// ###### 六级标题
-
-// ---
-
-// **加粗文本**
-
-// *斜体文本*
-
-// ~~删除文本~~
-
-// > 引用文本
-
-// - 列表
-// - 列表
-//   - 列表
-//   - 列表
-
-// 1. 列表
-// 2. 列表
-
-// \`代码\`
-
-// \`\`\`
-// 代码块
-// \`\`\`
-
-// [链接](https://llx.life)
-
-// [链接(有alt)](https://llx.life "陆陆侠的生活")
-
-// https://llx.life
-
-// ![图片](https://octodex.github.com/images/minion.png)
-
-// 欢迎收看新闻 54 台。我是吉莉安·乔丹。
-
-// 首先为各位观众带来的是本地新闻。
-
-// 荒坂公司总部灾难 54 周年的纪念日很快就要到了。
-
-// 2023 年，在荒坂夜之城总部所引爆的一颗战术原子弹，为整座城市带来了深入骨髓的末日灾难。
-
-//           `
-//         }
-      },
-      showCardList: [],
-      selectCardList: [],
-      onMove: false,
-      onJump: false,
-      openEdit: false,
-      editKey: '',
-      editCheck: false,
-      jumpTarget: { x: null, y: null },
-      cardBlock: [],
-      zIndexTemp: 0,
+      cardData: {}, // 已获取的卡片数据
+      showCardList: [], // 当前显示的卡片列表
+      selectCardList: [], // 当前选中的卡片列表
+      onMove: false, // 是否正在移动
+      onJump: false, // 是否开启跳转
+      openEdit: false, // 是否开启编辑
+      editKey: '', // 编辑密码
+      editCheck: false, // 编辑密码是否正确
+      jumpTarget: { x: null, y: null }, // 跳转目标点
+      cardBlock: [], // 已加载的区块
+      zIndexTemp: 0, // 临时卡片层级
+      url: '//127.0.0.1:8080/api/rest/'
     };
   },
   components: {
@@ -234,7 +111,7 @@ export default {
       })
       this.selectCardList.forEach(id => {
         delete this.cardData[id]
-        axios.post('//hasura.llx.ink/api/rest/card/remove', {
+        axios.post(this.url + 'card/remove', {
           id: +id
         }, {
           headers: {
@@ -247,13 +124,14 @@ export default {
       this.selectCardList = []
     },
     checkEdit() {
-      axios.get('//hasura.llx.ink/api/rest/world/check', {
+      axios.get(this.url + 'world/check', {
         headers: {
+          'Content-Type': 'application/json',
           'x-hasura-world': this.$route.params.world,
           'x-hasura-key': this.editKey
         }
       }).then(res => {
-        if (res.data.hanakoi_world.length) {
+        if (res.data.world.length) {
           this.editCheck = true
         }
       })
@@ -263,7 +141,7 @@ export default {
       const blockY = parseInt(y / 5000)
       if (!this.cardBlock.includes(`${blockX},${blockY}`)) {
         this.cardBlock.push(`${blockX},${blockY}`)
-        const { data: res } =  await axios.post('//hasura.llx.ink/api/rest/card/get', {
+        const { data: res } =  await axios.post(this.url + 'card/get', {
           min_x: -5000 + blockX * 5000,
           max_x: 5000 + blockX * 5000,
           min_y: -5000 + blockY * 5000,
@@ -273,7 +151,7 @@ export default {
             'x-hasura-world': this.$route.params.world
           }
         })
-        res.hanakoi_card.forEach(card => {
+        res.card.forEach(card => {
           if (!this.cardData[card.id]) {
             this.cardData[card.id] = card
           }
@@ -284,7 +162,7 @@ export default {
       })
     },
     updateCardPosition(id, x, y) {
-      axios.post('//hasura.llx.ink/api/rest/card/position/update', {
+      axios.post(this.url + 'card/move', {
         id: +id,
         x: parseInt(x),
         y: parseInt(y)
@@ -295,7 +173,7 @@ export default {
           'x-hasura-key': this.editKey
         }
       }).then(res => {
-        const returnData = res.data.update_hanakoi_card_by_pk
+        const returnData = res.data.card
         const id = returnData.id
         const lastChangeTime = returnData.lastChangeTime
         this.cardData[id].lastChangeTime = lastChangeTime
@@ -427,14 +305,14 @@ export default {
           if (this.selectCardList.length == 1) {
             const card = this.cardData[this.selectCardList[0]]
             const cardData = _.pick(card, ['id', 'world', 'x', 'y', 'width', 'height', 'class', 'content'])
-            axios.post('//hasura.llx.ink/api/rest/card/change', cardData, {
+            axios.post(this.url + 'card/update', cardData, {
               headers: {
                 'Content-Type': 'application/json',
                 'x-hasura-world': this.$route.params.world,
                 'x-hasura-key': this.editKey
               }
             }).then(res => {
-              const returnData = res.data.update_hanakoi_card_by_pk
+              const returnData = res.data.card
               const id = returnData.id
               const lastChangeTime = returnData.lastChangeTime
               this.cardData[id].lastChangeTime = lastChangeTime
@@ -457,7 +335,7 @@ export default {
             "class": "theme-blue",
             "content": "你好，世界！"
           }
-          axios.post('//hasura.llx.ink/api/rest/card/add', {
+          axios.post(_this.url + 'card/add', {
             "object": card
           }, {
             headers: {
@@ -466,7 +344,7 @@ export default {
               'x-hasura-key': _this.editKey
             }
           }).then(res => {
-            const cardId = res?.data?.insert_hanakoi_card_one.id
+            const cardId = res.data.card.id
             if (cardId) {
               const newCardData = {
                 id: cardId,
@@ -549,13 +427,19 @@ export default {
       pageJump(this.jumpTarget.x * 100, this.jumpTarget.y * 100)
     })
 
-    const halfClientWidth = document.body.clientWidth / 2
-    const halfClientHeight = document.body.clientHeight / 2
+    let halfClientWidth = document.body.clientWidth / 2
+    let halfClientHeight = document.body.clientHeight / 2
+
+    // 监听窗口变换
+    window.addEventListener('resize', () => {
+      halfClientWidth = document.body.clientWidth / 2
+      halfClientHeight = document.body.clientHeight / 2
+    })
 
     const render = () => {
       // 缓动
-      pagePostion.value.x = (+pagePostion.value.x + ((lastPagePostion.value.x - moveDelta.value.x) - pagePostion.value.x) * 0.1).toFixed(2)
-      pagePostion.value.y = (+pagePostion.value.y + ((lastPagePostion.value.y - moveDelta.value.y) - pagePostion.value.y) * 0.1).toFixed(2)
+      pagePostion.value.x = (+pagePostion.value.x + ((lastPagePostion.value.x - moveDelta.value.x) - pagePostion.value.x) * 0.1).toFixed(3)
+      pagePostion.value.y = (+pagePostion.value.y + ((lastPagePostion.value.y - moveDelta.value.y) - pagePostion.value.y) * 0.1).toFixed(3)
       // 卡片
       this.$refs.cardRef && this.$refs.cardRef.forEach((item, index) => {
         const cardId = item.dataset.id
@@ -662,9 +546,8 @@ export default {
 </script>
 
 <template>
-  <p class="test absolute z-1"></p>
   <!-- 卡片 -->
-  <div id="view" class="w-screen h-screen text-sm text-dark-200 font-default">
+  <div id="view" class="w-screen h-screen text-sm">
     <div
       v-for="(id, index) in showCardList"
       :key="cardData[id].id"
@@ -673,7 +556,7 @@ export default {
       :data-x="cardData[id].x"
       :data-y="cardData[id].y"
       :style="{zIndex: cardData[id].zIndex}"
-      class="card absolute group border-10 border-transparent"
+      class="card fixed group border-10 border-transparent"
       ref="cardRef"
     >
       <p
@@ -758,7 +641,7 @@ export default {
     </template>
   </div>
   <!-- 控制台 -->
-  <div class="fixed bottom-4 right-4 font-default h-10 flex space-x-1 z-9999">
+  <div class="fixed bottom-4 right-4 h-10 flex space-x-1 z-9999">
     <p class="text-center text-sm bg-white/90 border-black/50 border-2 rounded-sm p-2">
       主世界 (
       <span class="coordinate"></span>)
@@ -777,7 +660,7 @@ export default {
     </p>
   </div>
   <div
-    class="fixed bottom-16 right-4 font-default bg-white/90 border-black/50 border-2 rounded-sm p-2 text-dark-50 text-sm transition opacity-0 pointer-events-none z-9999"
+    class="fixed bottom-16 right-4 bg-white/90 border-black/50 border-2 rounded-sm p-2 text-dark-50 text-sm transition opacity-0 pointer-events-none z-9999"
     :class="onJump ? 'opacity-100 pointer-events-auto' : ''"
   >
     <p>系统初始化已完成……</p>
@@ -801,7 +684,7 @@ export default {
   <!-- 编辑模式 -->
   <p
     @click="this.openEdit = !this.openEdit"
-    class="fixed bottom-4 left-4 font-default bg-white/90 border-black/50 border-2 rounded-sm w-10 h-10 flex justify-center items-center z-9999 opacity-0 transition hover:(opacity-100)"
+    class="fixed bottom-4 left-4 bg-white/90 border-black/50 border-2 rounded-sm w-10 h-10 flex justify-center items-center z-9999 opacity-0 transition hover:(opacity-100)"
     :class="this.openEdit ? '!opacity-100' : ''"
   >
     <i class="iconfont icon-bianji text-xl"></i>
@@ -826,20 +709,11 @@ export default {
       <p @click="checkEdit()" class="text-blue-dark inline-block">确认密钥</p>
     </template>
   </div>
-  <!-- 旗帜装饰 -->
-  <!-- <img class="absolute top-0 z-9999" src="/flag-left.svg" alt />
-  <img class="absolute top-0 right-0 z-9999" src="/flag-right.svg" alt /> -->
+  <p class="theme-pink theme-yellow theme-green theme-red theme-purple"></p>
 </template>
 
 <style>
 @import url(//at.alicdn.com/t/font_3228461_apeclwa2cej.css);
-@font-face {
-  font-family: SweiGothicCJKtc-Medium;
-  src: url(https://cdn.jsdelivr.net/gh/max32002/swei-gothic@2.129/WebFont/CJK%20TC/SweiGothicCJKtc-Medium.woff2)
-      format("woff2"),
-    url(https://cdn.jsdelivr.net/gh/max32002/swei-gothic@2.129/WebFont/CJK%20TC/SweiGothicCJKtc-Medium.woff)
-      format("woff");
-}
 * {
   margin: 0;
   padding: 0;

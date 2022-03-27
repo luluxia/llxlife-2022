@@ -12,6 +12,7 @@
     "hammerjs": "^2.0.8",
     "interactjs": "^1.10.11",
     "lodash": "^4.17.21",
+    "lxgw-wenkai-screen-webfont": "^1.5.0",
     "markdown-it": "^12.3.2",
     "sass": "^1.49.9",
     "vue": "^3.2.31",
