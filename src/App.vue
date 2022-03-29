@@ -18,7 +18,8 @@ export default {
       editCheck: false, // 编辑密码是否正确
       jumpTarget: { x: null, y: null }, // 跳转目标点
       cardBlock: [], // 已加载的区块
-      zIndexTemp: 0, // 临时卡片层级
+      zIndexTemp: 0, // 临时卡片层级,
+      shiftKey: false, // shift键是否按下
       url: '//127.0.0.1:8080/api/rest/'
     };
   },
@@ -474,19 +475,39 @@ export default {
     // 滚动
     document.body.addEventListener('wheel', e => {
       if (e.deltaY > 0) {
-        moveDelta.value.y -= 50
+        if (this.shiftKey) {
+          moveDelta.value.x -= 50
+        } else {
+          moveDelta.value.y -= 50
+        }
       } else {
-        moveDelta.value.y += 50
+        if (this.shiftKey) {
+          moveDelta.value.x += 50
+        } else {
+          moveDelta.value.y += 50
+        }
       }
       const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2)
       const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2)
       this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } })
     })
 
+    document.body.addEventListener('keydown', e => {
+      if (e.key == 'Shift') {
+        this.shiftKey = true
+      }
+    })
+
+    document.body.addEventListener('keyup', e => {
+      if (e.key == 'Shift') {
+        this.shiftKey = false
+      }
+    })
+
     document.body.addEventListener('wheel', _.throttle(async () => {
       await this.getCards(parseInt(pagePostion.value.x), parseInt(pagePostion.value.y))
       checkCards()
-    }, 2000, { 'trailing': false }))
+    }, 1000, { 'trailing': false }))
 
     // 是否超出边界
     const checkCards = (pageX = pagePostion.value.x, pageY = pagePostion.value.y) => {
@@ -546,6 +567,7 @@ export default {
 </script>
 
 <template>
+  <p class="test fixed"></p>
   <!-- 卡片 -->
   <div id="view" class="w-screen h-screen">
     <div
@@ -594,17 +616,6 @@ export default {
           type="text"
         />
       </div>
-      <!-- <p class="font-bold text-dark-50">主题</p>
-      <div class="flex justify-between space-x-1">
-        <div class="w-full h-5 rounded border-2 border-transparent bg-purple"></div>
-        <div class="w-full h-5 rounded border-2 border-transparent bg-blue"></div>
-        <div class="w-full h-5 rounded border-2 border-transparent bg-pink"></div>
-        <div class="w-full h-5 rounded border-2 border-transparent bg-yellow"></div>
-        <div class="w-full h-5 rounded border-2 border-transparent bg-green"></div>
-        <div class="w-full h-5 rounded border-2 border-transparent bg-red"></div>
-        <div class="w-full h-5 rounded border-2 border-transparent bg-gray-200"></div>
-        <div class="w-full h-5 rounded border-2"></div>
-      </div>-->
       <p class="font-bold text-dark-50">内容</p>
       <textarea
         v-if="selectCardList[0]"
@@ -690,7 +701,7 @@ export default {
     <i class="iconfont icon-bianji text-xl"></i>
   </p>
   <div
-    class="fixed bottom-16 left-4 font-default bg-white/90 border-black/50 border-2 rounded-sm p-2 text-dark-50 text-sm z-9999 transition opacity-0 pointer-events-none"
+    class="fixed bottom-16 left-4 bg-white/90 border-black/50 border-2 rounded-sm p-2 text-dark-50 text-sm z-9999 transition opacity-0 pointer-events-none"
     :class="openEdit ? 'opacity-100 pointer-events-auto' : ''"
   >
     <template v-if="editCheck">
@@ -709,7 +720,7 @@ export default {
       <p @click="checkEdit()" class="text-blue-dark inline-block">确认密钥</p>
     </template>
   </div>
-  <p class="theme-pink theme-yellow theme-green theme-red theme-purple"></p>
+  <p class="theme-pink theme-yellow theme-green theme-red theme-purple !w-80 !w-120"></p>
 </template>
 
 <style>

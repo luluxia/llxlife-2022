@@ -2,6 +2,16 @@
 import markdownit from 'markdown-it'
 const props = defineProps(['cardData'])
 const md = new markdownit()
+let defaultRender = md.renderer.rules.link_open || function (tokens, idx, options, env, self) {
+  return self.renderToken(tokens, idx, options)
+}
+md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
+  if (tokens[idx].attrs[0][1][0] != '/') {
+    tokens[idx].attrPush(['target', '_blank'])
+    tokens[idx].attrs[1][1] = '_blank'
+  }
+  return defaultRender(tokens, idx, options, env, self)
+}
 </script>
 <template>
   <div
@@ -31,6 +41,8 @@ const md = new markdownit()
   color: #888
   a
     color: #888
+    text-decoration: none
+    border-bottom: 1px dashed
   img
     max-width: 100%
   h1
