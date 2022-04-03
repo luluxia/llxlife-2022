@@ -7,6 +7,10 @@ import CardContent from './components/CardContent.vue'
 import CardDragBar from './components/CardDragBar.vue'
 import EditorBtn from './components/EditorBtn.vue'
 import Selection from './components/Selection.vue'
+import EditorModeBox from './components/EditorModeBox.vue'
+import FooterItem from './components/FooterItem.vue'
+import JumpTargetBox from './components/JumpTargetBox.vue'
+import Coordinate from './components/Coordinate.vue'
 export default {
   data() {
     return {
@@ -32,7 +36,11 @@ export default {
     CardContent,
     EditorBtn,
     CardDragBar,
-    Selection
+    Selection,
+    EditorModeBox,
+    FooterItem,
+    JumpTargetBox,
+    Coordinate
   },
   methods: {
     verticalDistribute() {
@@ -131,12 +139,12 @@ export default {
       })
       this.selectCardList = []
     },
-    checkEdit() {
+    checkEdit(editKey) {
       axios.get(this.url + 'world/check', {
         headers: {
           'Content-Type': 'application/json',
           'x-hasura-world': this.$route.params.world,
-          'x-hasura-key': this.editKey
+          'x-hasura-key': editKey
         }
       }).then(res => {
         if (res.data.world.length) {
@@ -670,74 +678,32 @@ export default {
     </template>
   </div>
   <!-- 控制台 -->
-  <div class="fixed bottom-4 right-4 h-10 flex space-x-1 z-9999">
-    <p class="text-center text-sm bg-white/90 border-black/50 border-2 rounded-sm p-2">
-      主世界 (
-      <span class="coordinate"></span>)
-    </p>
-    <p
-      class="btn-home bg-white/90 border-black/50 border-2 rounded-sm w-10 flex justify-center items-center opacity-50 transition hover:(opacity-100)"
-    >
-      <i class="iconfont icon-yuandian text-xl"></i>
-    </p>
-    <p
+  <div class="fixed bottom-4 right-4 flex space-x-1 z-9999">
+    <Coordinate />
+    <FooterItem class="btn-home opacity-50 transition hover:(opacity-100)" icon="icon-yuandian" />
+    <FooterItem
       @click="onJump = !onJump"
-      class="bg-white/90 border-black/50 border-2 rounded-sm w-10 flex justify-center items-center opacity-50 transition hover:(opacity-100)"
       :class="onJump ? '!opacity-100' : ''"
-    >
-      <i class="iconfont icon-huojian text-xl"></i>
-    </p>
-  </div>
-  <div
-    class="fixed bottom-16 right-4 bg-white/90 border-black/50 border-2 rounded-sm p-2 text-dark-50 text-sm transition opacity-0 pointer-events-none z-9999"
-    :class="onJump ? 'opacity-100 pointer-events-auto' : ''"
-  >
-    <p>系统初始化已完成……</p>
-    <p>燃料确认充足……</p>
-    <p>跃迁引擎已启动……</p>
-    <p>请指定跳跃坐标……</p>
-    <input
-      v-model="jumpTarget.x"
-      class="bg-gray-100 p-1 w-22 rounded-sm border-black/20 border-2 mr-2"
-      placeholder="x"
-      type="text"
+      class="opacity-50 transition hover:(opacity-100)"
+      icon="icon-huojian"
     />
-    <input
-      v-model="jumpTarget.y"
-      class="bg-gray-100 p-1 w-22 rounded-sm border-black/20 border-2 mr-2"
-      placeholder="y"
-      type="text"
-    />
-    <p class="btn-jump text-blue-dark inline-block">启动跃迁引擎</p>
   </div>
+  <JumpTargetBox :on-jump="onJump" v-model="jumpTarget" />
   <!-- 编辑模式 -->
-  <p
-    @click="this.openEdit = !this.openEdit"
-    class="fixed bottom-4 left-4 bg-white/90 border-black/50 border-2 rounded-sm w-10 h-10 flex justify-center items-center z-9999 opacity-0 transition hover:(opacity-100)"
-    :class="this.openEdit ? '!opacity-100' : ''"
-  >
-    <i class="iconfont icon-bianji text-xl"></i>
-  </p>
-  <div
-    class="fixed bottom-16 left-4 bg-white/90 border-black/50 border-2 rounded-sm p-2 text-dark-50 text-sm z-9999 transition opacity-0 pointer-events-none"
-    :class="openEdit ? 'opacity-100 pointer-events-auto' : ''"
-  >
-    <template v-if="editCheck">
-      <p>当前正处于创造模式中</p>
-      <p @click="editCheck = false" class="text-blue-dark inline-block">关闭创造模式</p>
-    </template>
-    <template v-else>
-      <p>正在启动创造模式……</p>
-      <p>验证用户身份中……</p>
-      <p>请输入您的超级密钥……</p>
-      <input
-        class="bg-gray-100 p-1 w-22 rounded-sm border-black/20 border-2 mr-2"
-        type="password"
-        v-model="editKey"
-      />
-      <p @click="checkEdit()" class="text-blue-dark inline-block">确认密钥</p>
-    </template>
+  <div class="fixed bottom-4 left-4 flex space-x-1 z-9999">
+    <FooterItem
+      @click="this.openEdit = !this.openEdit"
+      :class="this.openEdit ? '!opacity-100' : ''"
+      class="opacity-0 transition hover:(opacity-100)"
+      icon="icon-bianji"
+    />
   </div>
+  <EditorModeBox
+    :open-edit="openEdit"
+    :edit-check="editCheck"
+    @check-edit="checkEdit"
+    @close-edit="editCheck = false"
+  />
 </template>
 
 <style>
