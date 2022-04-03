@@ -4,10 +4,13 @@ import interact from 'interactjs'
 import _ from 'lodash'
 import axios from 'axios'
 import CardContent from './components/CardContent.vue'
+import CardDragBar from './components/CardDragBar.vue'
 import EditorBtn from './components/EditorBtn.vue'
+import Selection from './components/Selection.vue'
 export default {
   data() {
     return {
+      world: {},    // 世界信息
       cardData: {}, // 已获取的卡片数据
       showCardList: [], // 当前显示的卡片列表
       selectCardList: [], // 当前选中的卡片列表
@@ -20,12 +23,16 @@ export default {
       cardBlock: [], // 已加载的区块
       zIndexTemp: 0, // 临时卡片层级,
       shiftKey: false, // shift键是否按下
-      url: '//127.0.0.1:8080/api/rest/'
+      url: '//127.0.0.1:8080/api/rest/',
+
+      pageJump: null
     };
   },
   components: {
     CardContent,
-    EditorBtn
+    EditorBtn,
+    CardDragBar,
+    Selection
   },
   methods: {
     verticalDistribute() {
@@ -149,7 +156,7 @@ export default {
           max_y: 5000 + blockY * 5000,
         }, {
           headers: {
-            'x-hasura-world': this.$route.params.world
+            'x-hasura-world': this.world.name
           }
         })
         res.card.forEach(card => {
@@ -199,6 +206,19 @@ export default {
       this.sortCard()
       this.zIndexTemp = length
     },
+    '$route.hash'(hash) {
+      if (hash) {
+        const hashData = hash.split('/')
+        const world = hashData[0].slice(1)
+        const position = hashData[1].split(',')
+        if (world != this.$route.params.world) {
+          this.world.name = world
+          this.cardBlock = []
+        }
+        this.pageJump(position[0] * 100, position[1] * 100)
+        this.$router.replace(`/world/${hash.slice(1)}`)
+      }
+    }
   },
   mounted() {
     const pagePostion = ref({ x: 0, y: 0 })     // 当前页面的位置
@@ -333,7 +353,7 @@ export default {
             "y": newCardY,
             "width": "110",
             "height": "44",
-            "class": "theme-blue",
+            "class": "blue",
             "content": "你好，世界！"
           }
           axios.post(_this.url + 'card/add', {
@@ -452,8 +472,8 @@ export default {
           this.$refs.cardRef[index].dataset.y = +this.cardData[cardId].y + moveCardDelta.value.y
         }
       })
-      document.body.style.backgroundPositionX = `${-pagePostion.value.x}px`
-      document.body.style.backgroundPositionY = `${-pagePostion.value.y}px`
+      document.body.style.backgroundPositionX = `${-(pagePostion.value.x % 1920)}px`
+      document.body.style.backgroundPositionY = `${-(pagePostion.value.y % 809)}px`
       // document.querySelector('.test').innerHTML = `
       //   <p>pagePostionX  ${pagePostion.value.x}</p>
       //   <p>pagePostionY  ${pagePostion.value.y}</p>
@@ -492,18 +512,19 @@ export default {
       this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } })
     })
 
+    // 判断是否横向滚动
     document.body.addEventListener('keydown', e => {
       if (e.key == 'Shift') {
         this.shiftKey = true
       }
     })
-
     document.body.addEventListener('keyup', e => {
       if (e.key == 'Shift') {
         this.shiftKey = false
       }
     })
 
+    // 滚动时判断卡片是否在视野内
     document.body.addEventListener('wheel', _.throttle(async () => {
       await this.getCards(parseInt(pagePostion.value.x), parseInt(pagePostion.value.y))
       checkCards()
@@ -523,7 +544,8 @@ export default {
           pageX < +card.x + padding + halfScreenWidth + card.width / 2 &&
           pageX > +card.x - padding - halfScreenWidth - card.width / 2 &&
           pageY < +card.y + padding + halfScreenHeight + card.height / 2 &&
-          pageY > +card.y - padding - halfScreenHeight - card.height / 2
+          pageY > +card.y - padding - halfScreenHeight - card.height / 2 &&
+          card.world == this.world.name
         ) {
           showCardList.push(card.id)
         }
@@ -543,9 +565,11 @@ export default {
       await this.getCards(x, y)
       checkCards(x, y)
     }
+    this.pageJump = pageJump
 
     // 初始化
     setTimeout(async () => {
+      this.world.name = this.$route.params.world
       // URL跳转
       if (this.$route.params.position) {
         const position = this.$route.params.position.split(',')
@@ -567,7 +591,6 @@ export default {
 </script>
 
 <template>
-  <p class="test fixed"></p>
   <!-- 卡片 -->
   <div id="view" class="w-screen h-screen">
     <div
@@ -581,17 +604,12 @@ export default {
       class="card fixed group border-10 border-transparent"
       ref="cardRef"
     >
-      <p
-        v-if="editCheck"
-        class="move absolute rounded-t bg-black/20 w-full h-2.5 transition opacity-0 group-hover:opacity-100"
-      ></p>
+      <CardDragBar v-if="editCheck" />
       <CardContent :cardData="cardData[id]" />
     </div>
   </div>
   <!-- 选框 -->
-  <div
-    class="selection absolute pointer-events-none bg-teal-200/20 border-teal-200 border-1 top-0 left-0"
-  ></div>
+  <Selection />
   <!-- 编辑器 -->
   <div
     ref="editor"
@@ -720,7 +738,6 @@ export default {
       <p @click="checkEdit()" class="text-blue-dark inline-block">确认密钥</p>
     </template>
   </div>
-  <p class="theme-pink theme-yellow theme-green theme-red theme-purple !w-80 !w-120"></p>
 </template>
 
 <style>
@@ -734,6 +751,6 @@ body {
   font-family: "LXGW WenKai Screen", sans-serif !important;
   background: #fffaf3;
   background-image: url("/bg.png");
-  background-size: 80%;
+  background-size: 1920px 809px;
 }
 </style>

@@ -6,7 +6,7 @@ let defaultRender = md.renderer.rules.link_open || function (tokens, idx, option
   return self.renderToken(tokens, idx, options)
 }
 md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
-  if (tokens[idx].attrs[0][1][0] != '/') {
+  if (tokens[idx].attrs[0][1][0] != '#') {
     tokens[idx].attrPush(['target', '_blank'])
     tokens[idx].attrs[1][1] = '_blank'
   }
@@ -35,6 +35,8 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
   border-color: $c1 !important
   h1
     background: $c2
+  h2
+    color: $c2
 .card-content
   animation: appear 0.2s ease-out
   font-family: "LXGW WenKai Screen", sans-serif !important
@@ -45,6 +47,7 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
     border-bottom: 1px dashed
   img
     max-width: 100%
+    display: block
   h1
     display: inline-block
     position: relative
@@ -57,6 +60,8 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
     font-size: 1.25em
     line-height: 1
     letter-spacing: 0.1em !important
+  h2
+    font-weight: normal
 .purple
   @include colors(#A39EBC, #857988)
 .blue
@@ -69,4 +74,11 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
   @include colors(#9EDA92, #7FBF4F)
 .red
   @include colors(#B48081, #A66869)
+
+.mgame
+  img
+    width: 150px
+    display: block
+    margin: 0 auto
+  text-align: center
 </style>
