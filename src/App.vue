@@ -1,35 +1,35 @@
 <script>
-import { ref } from 'vue'
-import interact from 'interactjs'
-import _ from 'lodash'
-import axios from 'axios'
-import CardContent from './components/CardContent.vue'
-import CardDragBar from './components/CardDragBar.vue'
-import EditorBtn from './components/EditorBtn.vue'
-import Selection from './components/Selection.vue'
-import EditorModeBox from './components/EditorModeBox.vue'
-import FooterItem from './components/FooterItem.vue'
-import JumpTargetBox from './components/JumpTargetBox.vue'
-import Coordinate from './components/Coordinate.vue'
+import { ref } from "vue";
+import interact from "interactjs";
+import _ from "lodash";
+import axios from "axios";
+import CardContent from "./components/CardContent.vue";
+import CardDragBar from "./components/CardDragBar.vue";
+import EditorBtn from "./components/EditorBtn.vue";
+import Selection from "./components/Selection.vue";
+import EditorModeBox from "./components/EditorModeBox.vue";
+import FooterItem from "./components/FooterItem.vue";
+import JumpTargetBox from "./components/JumpTargetBox.vue";
+import Coordinate from "./components/Coordinate.vue";
 export default {
   data() {
     return {
-      world: {},    // 世界信息
+      world: {}, // 世界信息
       cardData: {}, // 已获取的卡片数据
       showCardList: [], // 当前显示的卡片列表
       selectCardList: [], // 当前选中的卡片列表
       onMove: false, // 是否正在移动
       onJump: false, // 是否开启跳转
       openEdit: false, // 是否开启编辑
-      editKey: '', // 编辑密码
+      editKey: "", // 编辑密码
       editCheck: false, // 编辑密码是否正确
       jumpTarget: { x: null, y: null }, // 跳转目标点
       cardBlock: [], // 已加载的区块
       zIndexTemp: 0, // 临时卡片层级,
       shiftKey: false, // shift键是否按下
-      url: '//127.0.0.1:8080/api/rest/',
+      url: "//127.0.0.1:8080/api/rest/hanakoi/",
 
-      pageJump: null
+      pageJump: null,
     };
   },
   components: {
@@ -40,448 +40,559 @@ export default {
     EditorModeBox,
     FooterItem,
     JumpTargetBox,
-    Coordinate
+    Coordinate,
   },
   methods: {
     verticalDistribute() {
-      const sortedList = _.sortBy(this.selectCardList, id => {
-        return +this.cardData[id].y
-      })
+      const sortedList = _.sortBy(this.selectCardList, (id) => {
+        return +this.cardData[id].y;
+      });
       sortedList.forEach((id, index) => {
         if (index) {
-          const firstCard = this.cardData[sortedList[0]]
-          const lastCard = this.cardData[sortedList[index - 1]]
-          const selfCard = this.cardData[id]
-          this.cardData[id].x = +firstCard.x - (firstCard.width - selfCard.width) / 2
-          this.cardData[id].y = +lastCard.y + lastCard.height / 2 + selfCard.height / 2 + 10
+          const firstCard = this.cardData[sortedList[0]];
+          const lastCard = this.cardData[sortedList[index - 1]];
+          const selfCard = this.cardData[id];
+          this.cardData[id].x =
+            +firstCard.x - (firstCard.width - selfCard.width) / 2;
+          this.cardData[id].y =
+            +lastCard.y + lastCard.height / 2 + selfCard.height / 2 + 10;
         }
-      })
-      this.updateSelectedCardPostion()
+      });
+      this.updateSelectedCardPostion();
     },
     horizontalDistribute() {
-      const sortedList = _.sortBy(this.selectCardList, id => {
-        return +this.cardData[id].x
-      })
+      const sortedList = _.sortBy(this.selectCardList, (id) => {
+        return +this.cardData[id].x;
+      });
       sortedList.forEach((id, index) => {
         if (index) {
-          const firstCard = this.cardData[sortedList[0]]
-          const lastCard = this.cardData[sortedList[index - 1]]
-          const selfCard = this.cardData[id]
-          this.cardData[id].y = +firstCard.y - (firstCard.height - selfCard.height) / 2
-          this.cardData[id].x = +lastCard.x + lastCard.width / 2 + this.cardData[id].width / 2 + 10
+          const firstCard = this.cardData[sortedList[0]];
+          const lastCard = this.cardData[sortedList[index - 1]];
+          const selfCard = this.cardData[id];
+          this.cardData[id].y =
+            +firstCard.y - (firstCard.height - selfCard.height) / 2;
+          this.cardData[id].x =
+            +lastCard.x + lastCard.width / 2 + this.cardData[id].width / 2 + 10;
         }
-      })
-      this.updateSelectedCardPostion()
+      });
+      this.updateSelectedCardPostion();
     },
     alignLeft() {
-      const minX = _.min(this.selectCardList.map(id => {
-        return +this.cardData[id].x - this.cardData[id].width / 2
-      }))
-      this.selectCardList.forEach(id => {
-        this.cardData[id].x = minX + this.cardData[id].width / 2
-      })
-      this.updateSelectedCardPostion()
+      const minX = _.min(
+        this.selectCardList.map((id) => {
+          return +this.cardData[id].x - this.cardData[id].width / 2;
+        })
+      );
+      this.selectCardList.forEach((id) => {
+        this.cardData[id].x = minX + this.cardData[id].width / 2;
+      });
+      this.updateSelectedCardPostion();
     },
     centerHorizontally() {
-      this.selectCardList.forEach(id => {
-        this.cardData[id].x = this.cardData[this.selectCardList[0]].x
-      })
-      this.updateSelectedCardPostion()
+      this.selectCardList.forEach((id) => {
+        this.cardData[id].x = this.cardData[this.selectCardList[0]].x;
+      });
+      this.updateSelectedCardPostion();
     },
     alignRight() {
-      const maxX = _.max(this.selectCardList.map(id => {
-        return +this.cardData[id].x + this.cardData[id].width / 2
-      }))
-      this.selectCardList.forEach(id => {
-        this.cardData[id].x = maxX - this.cardData[id].width / 2
-      })
-      this.updateSelectedCardPostion()
+      const maxX = _.max(
+        this.selectCardList.map((id) => {
+          return +this.cardData[id].x + this.cardData[id].width / 2;
+        })
+      );
+      this.selectCardList.forEach((id) => {
+        this.cardData[id].x = maxX - this.cardData[id].width / 2;
+      });
+      this.updateSelectedCardPostion();
     },
     alignTop() {
-      const minY = _.min(this.selectCardList.map(id => {
-        return +this.cardData[id].y - this.cardData[id].height / 2
-      }))
-      this.selectCardList.forEach(id => {
-        this.cardData[id].y = minY + this.cardData[id].height / 2
-      })
-      this.updateSelectedCardPostion()
+      const minY = _.min(
+        this.selectCardList.map((id) => {
+          return +this.cardData[id].y - this.cardData[id].height / 2;
+        })
+      );
+      this.selectCardList.forEach((id) => {
+        this.cardData[id].y = minY + this.cardData[id].height / 2;
+      });
+      this.updateSelectedCardPostion();
     },
     centerVerticaly() {
-      this.selectCardList.forEach(id => {
-        this.cardData[id].y = this.cardData[this.selectCardList[0]].y
-      })
-      this.updateSelectedCardPostion()
+      this.selectCardList.forEach((id) => {
+        this.cardData[id].y = this.cardData[this.selectCardList[0]].y;
+      });
+      this.updateSelectedCardPostion();
     },
     alignBottom() {
-      const maxY = _.max(this.selectCardList.map(id => {
-        return +this.cardData[id].y + this.cardData[id].height / 2
-      }))
-      this.selectCardList.forEach(id => {
-        this.cardData[id].y = maxY - this.cardData[id].height / 2
-      })
-      this.updateSelectedCardPostion()
+      const maxY = _.max(
+        this.selectCardList.map((id) => {
+          return +this.cardData[id].y + this.cardData[id].height / 2;
+        })
+      );
+      this.selectCardList.forEach((id) => {
+        this.cardData[id].y = maxY - this.cardData[id].height / 2;
+      });
+      this.updateSelectedCardPostion();
     },
     removeCard() {
-      this.showCardList = this.showCardList.filter(id => {
-        return !this.selectCardList.includes(id)
-      })
-      this.selectCardList.forEach(id => {
-        delete this.cardData[id]
-        axios.post(this.url + 'card/remove', {
-          id: +id
-        }, {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-hasura-world': this.$route.params.world,
-            'x-hasura-key': this.editKey
+      this.showCardList = this.showCardList.filter((id) => {
+        return !this.selectCardList.includes(id);
+      });
+      this.selectCardList.forEach((id) => {
+        delete this.cardData[id];
+        axios.post(
+          this.url + "card/remove",
+          {
+            id: +id,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "x-hasura-world": this.$route.params.world,
+              "x-hasura-key": this.editKey,
+            },
           }
-        })
-      })
-      this.selectCardList = []
+        );
+      });
+      this.selectCardList = [];
     },
     checkEdit(editKey) {
-      axios.get(this.url + 'world/check', {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-hasura-world': this.$route.params.world,
-          'x-hasura-key': editKey
-        }
-      }).then(res => {
-        if (res.data.world.length) {
-          this.editCheck = true
-        }
-      })
+      this.editKey = editKey;
+      axios
+        .get(this.url + "world/check", {
+          headers: {
+            "Content-Type": "application/json",
+            "x-hasura-world": this.$route.params.world,
+            "x-hasura-key": editKey,
+          },
+        })
+        .then((res) => {
+          if (res.data.world.length) {
+            this.editCheck = true;
+          }
+        });
     },
     async getCards(x = 0, y = 0) {
-      const blockX = parseInt(x / 5000)
-      const blockY = parseInt(y / 5000)
+      const blockX = parseInt(x / 5000);
+      const blockY = parseInt(y / 5000);
       if (!this.cardBlock.includes(`${blockX},${blockY}`)) {
-        this.cardBlock.push(`${blockX},${blockY}`)
-        const { data: res } = await axios.post(this.url + 'card/get', {
-          min_x: -5000 + blockX * 5000,
-          max_x: 5000 + blockX * 5000,
-          min_y: -5000 + blockY * 5000,
-          max_y: 5000 + blockY * 5000,
-        }, {
-          headers: {
-            'x-hasura-world': this.world.name
+        this.cardBlock.push(`${blockX},${blockY}`);
+        const { data: res } = await axios.post(
+          this.url + "card/get",
+          {
+            min_x: -5000 + blockX * 5000,
+            max_x: 5000 + blockX * 5000,
+            min_y: -5000 + blockY * 5000,
+            max_y: 5000 + blockY * 5000,
+          },
+          {
+            headers: {
+              "x-hasura-world": this.world.name,
+            },
           }
-        })
-        res.card.forEach(card => {
+        );
+        res.card.forEach((card) => {
           if (!this.cardData[card.id]) {
-            this.cardData[card.id] = card
+            this.cardData[card.id] = card;
           }
-        })
+        });
       }
       return new Promise((resolve, reject) => {
-        resolve(this)
-      })
+        resolve(this);
+      });
     },
     updateCardPosition(id, x, y) {
-      axios.post(this.url + 'card/move', {
-        id: +id,
-        x: parseInt(x),
-        y: parseInt(y)
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-hasura-world': this.$route.params.world,
-          'x-hasura-key': this.editKey
-        }
-      }).then(res => {
-        const returnData = res.data.card
-        const id = returnData.id
-        const lastChangeTime = returnData.lastChangeTime
-        this.cardData[id].lastChangeTime = lastChangeTime
-      })
+      axios
+        .post(
+          this.url + "card/move",
+          {
+            id: +id,
+            x: parseInt(x),
+            y: parseInt(y),
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "x-hasura-world": this.$route.params.world,
+              "x-hasura-key": this.editKey,
+            },
+          }
+        )
+        .then((res) => {
+          const returnData = res.data.card;
+          const id = returnData.id;
+          const updated_at = returnData.updated_at;
+          this.cardData[id].updated_at = updated_at;
+        });
     },
     updateSelectedCardPostion() {
-      this.selectCardList.forEach(cardId => {
-        this.updateCardPosition(cardId, this.cardData[cardId].x, this.cardData[cardId].y)
-      })
+      this.selectCardList.forEach((cardId) => {
+        this.updateCardPosition(
+          cardId,
+          this.cardData[cardId].x,
+          this.cardData[cardId].y
+        );
+      });
     },
     sortCard() {
-      const sortedList = _.sortBy(this.showCardList, id => {
-        return this.cardData[id].lastChangeTime
-      })
+      const sortedList = _.sortBy(this.showCardList, (id) => {
+        return this.cardData[id].fixed_at
+          ? this.cardData[id].fixed_at
+          : this.cardData[id].updated_at;
+      });
       sortedList.forEach((id, index) => {
-        this.cardData[id].zIndex = index
-      })
-    }
+        this.cardData[id].zIndex = index;
+      });
+    },
   },
   watch: {
-    'showCardList.length'(length) {
-      this.sortCard()
-      this.zIndexTemp = length
+    "showCardList.length"(length) {
+      this.sortCard();
+      this.zIndexTemp = length;
     },
-    '$route.hash'(hash) {
+    "$route.hash"(hash) {
       if (hash) {
-        const hashData = hash.split('/')
-        const world = hashData[0].slice(1)
-        const position = hashData[1].split(',')
+        const hashData = hash.split("/");
+        const world = hashData[0].slice(1);
+        const position = hashData[1].split(",");
         if (world != this.$route.params.world) {
-          this.world.name = world
-          this.cardBlock = []
+          this.world.name = world;
+          this.cardBlock = [];
         }
-        this.pageJump(position[0] * 100, position[1] * 100)
-        this.$router.replace(`/world/${hash.slice(1)}`)
+        this.pageJump(position[0] * 100, position[1] * 100);
+        this.$router.replace(`/world/${hash.slice(1)}`);
       }
-    }
+    },
   },
   mounted() {
-    const pagePostion = ref({ x: 0, y: 0 })     // 当前页面的位置
-    const lastPagePostion = ref({ x: 0, y: 0 }) // 上次页面的位置
-    const moveDelta = ref({ x: 0, y: 0 })       // 每次移动时距离上次页面位置的偏移量
+    const pagePostion = ref({ x: 0, y: 0 }); // 当前页面的位置
+    const lastPagePostion = ref({ x: 0, y: 0 }); // 上次页面的位置
+    const moveDelta = ref({ x: 0, y: 0 }); // 每次移动时距离上次页面位置的偏移量
 
-    const moveCardDelta = ref({ x: 0, y: 0 })   // 卡片移动偏移量
+    const moveCardDelta = ref({ x: 0, y: 0 }); // 卡片移动偏移量
 
-    const lastSelectionPostion = ref({ x: 0, y: 0 }) // 选框初始位置
+    const lastSelectionPostion = ref({ x: 0, y: 0 }); // 选框初始位置
 
-    const selection = document.querySelector('.selection')
-    let onSelection = false
-    let haveMoved = false
+    const selection = document.querySelector(".selection");
+    let onSelection = false;
+    let haveMoved = false;
 
-    const _this = this
-    let allCardDom = null
+    const _this = this;
+    let allCardDom = null;
 
-    interact('#app')
+    interact("#app")
       .styleCursor(false)
       .draggable({
         listeners: {
           start(event) {
             // 选框、页面、偏移量初始数据
-            lastSelectionPostion.value.x = event.clientX
-            lastSelectionPostion.value.y = event.clientY
-            lastPagePostion.value.x = pagePostion.value.x
-            lastPagePostion.value.y = pagePostion.value.y
-            moveDelta.value.x = 0
-            moveDelta.value.y = 0
+            lastSelectionPostion.value.x = event.clientX;
+            lastSelectionPostion.value.y = event.clientY;
+            lastPagePostion.value.x = pagePostion.value.x;
+            lastPagePostion.value.y = pagePostion.value.y;
+            moveDelta.value.x = 0;
+            moveDelta.value.y = 0;
           },
           move(event) {
             // 判断是否长按进入选框模式
             if (!onSelection && !haveMoved && event.dt >= 200) {
-              onSelection = true
-              selection.style.opacity = 1
-              allCardDom = document.querySelectorAll('.card')
+              onSelection = true;
+              selection.style.opacity = 1;
+              allCardDom = document.querySelectorAll(".card");
             }
-            haveMoved = true
+            haveMoved = true;
             if (!onSelection) {
-              moveDelta.value.x = event.clientX - event.x0
-              moveDelta.value.y = event.clientY - event.y0
+              moveDelta.value.x = event.clientX - event.x0;
+              moveDelta.value.y = event.clientY - event.y0;
             } else {
               // 计算选框是否选中卡片
-              const selectionLeft = event.clientX < lastSelectionPostion.value.x ? event.clientX : lastSelectionPostion.value.x
-              const selectionTop = event.clientY < lastSelectionPostion.value.y ? event.clientY : lastSelectionPostion.value.y
-              const selectionWidth = Math.abs(event.clientX - event.x0)
-              const selectionHeight = Math.abs(event.clientY - event.y0)
-              const selectionRight = selectionLeft + selectionWidth
-              const selectionBottom = selectionTop + selectionHeight
-              selection.style.left = selectionLeft + 'px'
-              selection.style.top = selectionTop + 'px'
-              selection.style.width = selectionWidth + 'px'
-              selection.style.height = selectionHeight + 'px'
+              const selectionLeft =
+                event.clientX < lastSelectionPostion.value.x
+                  ? event.clientX
+                  : lastSelectionPostion.value.x;
+              const selectionTop =
+                event.clientY < lastSelectionPostion.value.y
+                  ? event.clientY
+                  : lastSelectionPostion.value.y;
+              const selectionWidth = Math.abs(event.clientX - event.x0);
+              const selectionHeight = Math.abs(event.clientY - event.y0);
+              const selectionRight = selectionLeft + selectionWidth;
+              const selectionBottom = selectionTop + selectionHeight;
+              selection.style.left = selectionLeft + "px";
+              selection.style.top = selectionTop + "px";
+              selection.style.width = selectionWidth + "px";
+              selection.style.height = selectionHeight + "px";
 
-              allCardDom.forEach(card => {
-                const cardRect = card.getBoundingClientRect()
-                const cardId = card.dataset.id
-                if (cardRect.left > selectionLeft - cardRect.width && cardRect.right < selectionRight + cardRect.width && cardRect.top > selectionTop - cardRect.height && cardRect.bottom < selectionBottom + cardRect.height) {
-                  _this.cardData[cardId].onChoose = true
-                  _this.cardData[cardId].x = card.dataset.x
-                  _this.cardData[cardId].y = card.dataset.y
+              allCardDom.forEach((card) => {
+                const cardRect = card.getBoundingClientRect();
+                const cardId = card.dataset.id;
+                if (
+                  cardRect.left > selectionLeft - cardRect.width &&
+                  cardRect.right < selectionRight + cardRect.width &&
+                  cardRect.top > selectionTop - cardRect.height &&
+                  cardRect.bottom < selectionBottom + cardRect.height
+                ) {
+                  _this.cardData[cardId].onChoose = true;
+                  _this.cardData[cardId].x = card.dataset.x;
+                  _this.cardData[cardId].y = card.dataset.y;
                 } else {
-                  _this.cardData[cardId].onChoose = false
+                  _this.cardData[cardId].onChoose = false;
                 }
-              })
+              });
             }
           },
           end(event) {
-            onSelection = false
-            haveMoved = false
-            selection.style.opacity = 0
+            onSelection = false;
+            haveMoved = false;
+            selection.style.opacity = 0;
             // 更新URL
-            const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2)
-            const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2)
-            _this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } });
+            const urlPosX = (
+              (+lastPagePostion.value.x - moveDelta.value.x) /
+              100
+            ).toFixed(2);
+            const urlPosY = (
+              (+lastPagePostion.value.y - moveDelta.value.y) /
+              100
+            ).toFixed(2);
+            _this.$router.replace({
+              params: { position: `${urlPosX},${urlPosY}` },
+            });
             // 更新卡片
-            _this.getCards(parseInt(pagePostion.value.x), parseInt(pagePostion.value.y)).then(() => {
-              checkCards()
-              let selectCardList = []
-              Object.keys(_this.cardData).forEach(id => {
-                const card = _this.cardData[id]
-                if (card.onChoose) {
-                  selectCardList.push(card.id)
-                }
-              })
-              _this.selectCardList = selectCardList
-              if (selectCardList.length) {
-                _this.$refs.editor.style.transform = `translate3d(${event.page.x + 10}px, ${event.page.y + 10}px, 0)`
-              }
-            })
-          }
-        }
+            _this
+              .getCards(
+                parseInt(pagePostion.value.x),
+                parseInt(pagePostion.value.y)
+              )
+              .then(() => {
+                checkCards();
+                let selectCardList = [];
+                Object.keys(_this.cardData).forEach((id) => {
+                  const card = _this.cardData[id];
+                  if (card.onChoose) {
+                    selectCardList.push(card.id);
+                  }
+                });
+                _this.selectCardList = selectCardList;
+                // if (selectCardList.length) {
+                //   _this.$refs.editor.style.transform = `translate3d(${event.page.x + 10}px, ${event.page.y + 10}px, 0)`
+                // }
+              });
+          },
+        },
       })
       // 单击页面
-      .on('tap', event => {
+      .on("tap", (event) => {
         // 清除选中状态
-        if (event.target.id == 'view') {
-          this.selectCardList.forEach(id => {
-            const cardDom = document.querySelector(`[data-id="${id}"]`)
-            this.cardData[id].onChoose = false
-            this.cardData[id].width = cardDom.clientWidth
-            this.cardData[id].height = cardDom.clientHeight
-          })
+        if (event.target.id == "view") {
+          this.selectCardList.forEach((id) => {
+            const cardDom = document.querySelector(`[data-id="${id}"]`);
+            this.cardData[id].onChoose = false;
+            this.cardData[id].width = cardDom.clientWidth;
+            this.cardData[id].height = cardDom.clientHeight;
+          });
           // 保存卡片数据
           if (this.selectCardList.length == 1) {
-            const card = this.cardData[this.selectCardList[0]]
-            const cardData = _.pick(card, ['id', 'world', 'x', 'y', 'width', 'height', 'class', 'content'])
-            axios.post(this.url + 'card/update', cardData, {
-              headers: {
-                'Content-Type': 'application/json',
-                'x-hasura-world': this.$route.params.world,
-                'x-hasura-key': this.editKey
-              }
-            }).then(res => {
-              const returnData = res.data.card
-              const id = returnData.id
-              const lastChangeTime = returnData.lastChangeTime
-              this.cardData[id].lastChangeTime = lastChangeTime
-            })
+            const card = this.cardData[this.selectCardList[0]];
+            const cardData = _.pick(card, [
+              "id",
+              "x",
+              "y",
+              "anchor",
+              "width",
+              "height",
+              "class",
+              "content",
+            ]);
+            axios
+              .post(this.url + "card/update", cardData, {
+                headers: {
+                  "Content-Type": "application/json",
+                  "x-hasura-world": this.$route.params.world,
+                  "x-hasura-key": this.editKey,
+                },
+              })
+              .then((res) => {
+                const returnData = res.data.card;
+                const id = returnData.id;
+                const updated_at = returnData.updated_at;
+                this.cardData[id].updated_at = updated_at;
+              });
           }
-          this.selectCardList = []
+          this.selectCardList = [];
         }
       })
       // 双击页面插入卡片
-      .on('doubletap', function (event) {
+      .on("doubletap", function (event) {
         if (_this.editCheck) {
-          const newCardX = parseInt(event.x - document.body.clientWidth / 2 + +pagePostion.value.x)
-          const newCardY = parseInt(event.y - document.body.clientHeight / 2 + +pagePostion.value.y)
+          const newCardX = parseInt(
+            event.x - document.body.clientWidth / 2 + +pagePostion.value.x
+          );
+          const newCardY = parseInt(
+            event.y - document.body.clientHeight / 2 + +pagePostion.value.y
+          );
           const card = {
-            "world": _this.$route.params.world,
-            "x": newCardX,
-            "y": newCardY,
-            "width": "110",
-            "height": "44",
-            "class": "blue",
-            "content": "你好，世界！"
-          }
-          axios.post(_this.url + 'card/add', {
-            "object": card
-          }, {
-            headers: {
-              'Content-Type': 'application/json',
-              'x-hasura-world': _this.$route.params.world,
-              'x-hasura-key': _this.editKey
-            }
-          }).then(res => {
-            const cardId = res.data.card.id
-            if (cardId) {
-              const newCardData = {
-                id: cardId,
-                ...card
+            x: newCardX,
+            y: newCardY,
+            width: 110,
+            height: 44,
+            anchor: "center center",
+            class: "blue",
+            content: "你好，世界！",
+          };
+          axios
+            .post(_this.url + "card/add", card, {
+              headers: {
+                "Content-Type": "application/json",
+                "x-hasura-world": _this.$route.params.world,
+                "x-hasura-key": _this.editKey,
+              },
+            })
+            .then((res) => {
+              const cardId = res.data.card.id;
+              if (cardId) {
+                const newCardData = {
+                  id: cardId,
+                  ...card,
+                };
+                _this.cardData[cardId] = newCardData;
+                _this.showCardList.push(cardId);
               }
-              _this.cardData[cardId] = newCardData
-              _this.showCardList.push(cardId)
-            }
-          })
+            });
         }
-      })
+      });
 
     // 卡片拖拽
-    interact('.card')
+    interact(".card")
       .draggable({
-        allowFrom: '.move',
+        allowFrom: ".move",
         listeners: {
           start(event) {
-            const dom = event.target
-            const cardId = dom.dataset.id
-            _this.cardData[cardId].onChoose = true
-            _this.cardData[cardId].x = dom.dataset.x
-            _this.cardData[cardId].y = dom.dataset.y
+            const dom = event.target;
+            const cardId = dom.dataset.id;
+            _this.cardData[cardId].onChoose = true;
+            _this.cardData[cardId].x = dom.dataset.x;
+            _this.cardData[cardId].y = dom.dataset.y;
 
-            moveCardDelta.value.x = event.clientX - event.x0
-            moveCardDelta.value.y = event.clientY - event.y0
+            moveCardDelta.value.x = event.clientX - event.x0;
+            moveCardDelta.value.y = event.clientY - event.y0;
 
-            _this.onMove = true
+            _this.onMove = true;
 
             // 更新卡片层级
-            _this.zIndexTemp++
-            _this.cardData[cardId].zIndex = _this.zIndexTemp
-            _this.selectCardList.forEach(id => {
-              _this.cardData[id].zIndex = _this.zIndexTemp
-            })
+            _this.zIndexTemp++;
+            _this.cardData[cardId].zIndex = _this.zIndexTemp;
+            _this.selectCardList.forEach((id) => {
+              _this.cardData[id].zIndex = _this.zIndexTemp;
+            });
           },
           move(event) {
-            moveCardDelta.value.x = event.clientX - event.x0
-            moveCardDelta.value.y = event.clientY - event.y0
+            moveCardDelta.value.x = event.clientX - event.x0;
+            moveCardDelta.value.y = event.clientY - event.y0;
           },
           end(event) {
-            const dom = event.target
-            const cardId = dom.dataset.id
+            const dom = event.target;
+            const cardId = dom.dataset.id;
             // 单选
             if (!_this.selectCardList.length) {
-              _this.cardData[cardId].onChoose = false
-              _this.updateCardPosition(cardId, dom.dataset.x, dom.dataset.y)
+              _this.cardData[cardId].onChoose = false;
+              _this.updateCardPosition(cardId, dom.dataset.x, dom.dataset.y);
             }
-            _this.$refs.cardRef.forEach(card => {
-              const cardId = card.dataset.id
-              _this.cardData[cardId].x = parseInt(card.dataset.x)
-              _this.cardData[cardId].y = parseInt(card.dataset.y)
-            })
-            _this.updateSelectedCardPostion()
-            _this.onMove = false
-          }
-        }
+            _this.$refs.cardRef.forEach((card) => {
+              const cardId = card.dataset.id;
+              _this.cardData[cardId].x = parseInt(card.dataset.x);
+              _this.cardData[cardId].y = parseInt(card.dataset.y);
+            });
+            _this.updateSelectedCardPostion();
+            _this.onMove = false;
+          },
+        },
       })
       // 点击卡片弹出编辑框
-      .on('tap', event => {
-        Object.keys(this.cardData).forEach(id => {
-          this.cardData[id].onChoose = false
-        })
+      .on("tap", (event) => {
+        Object.keys(this.cardData).forEach((id) => {
+          this.cardData[id].onChoose = false;
+        });
         if (event.target.parentNode.dataset.id && this.editCheck) {
-          const cardId = event.target.parentNode.dataset.id
-          this.cardData[cardId].onChoose = !this.cardData[cardId].onChoose
+          const cardId = event.target.parentNode.dataset.id;
+          this.cardData[cardId].onChoose = !this.cardData[cardId].onChoose;
           if (this.cardData[cardId].onChoose) {
-            this.selectCardList = [+cardId]
-            this.$refs.editor.style.transform = `translate3d(${event.x + 10}px, ${event.y + 10}px, 0)`
-            this.zIndexTemp++
-            this.cardData[cardId].zIndex = this.zIndexTemp
+            this.selectCardList = [+cardId];
+            // this.$refs.editor.style.transform = `translate3d(${event.x + 10}px, ${event.y + 10}px, 0)`
+            this.zIndexTemp++;
+            this.cardData[cardId].zIndex = this.zIndexTemp;
           }
         }
-      })
+      });
 
-    interact('.btn-home').on('tap', event => {
-      pageJump()
-    })
-    interact('.btn-jump').on('tap', event => {
-      pageJump(this.jumpTarget.x * 100, this.jumpTarget.y * 100)
-    })
+    interact(".btn-home").on("tap", (event) => {
+      pageJump();
+    });
+    interact(".btn-jump").on("tap", (event) => {
+      pageJump(this.jumpTarget.x * 100, this.jumpTarget.y * 100);
+    });
 
-    let halfClientWidth = document.body.clientWidth / 2
-    let halfClientHeight = document.body.clientHeight / 2
+    let halfClientWidth = document.body.clientWidth / 2;
+    let halfClientHeight = document.body.clientHeight / 2;
 
     // 监听窗口变换
-    window.addEventListener('resize', () => {
-      halfClientWidth = document.body.clientWidth / 2
-      halfClientHeight = document.body.clientHeight / 2
-    })
+    window.addEventListener("resize", () => {
+      halfClientWidth = document.body.clientWidth / 2;
+      halfClientHeight = document.body.clientHeight / 2;
+    });
 
     const render = () => {
       // 缓动
-      pagePostion.value.x = (+pagePostion.value.x + ((lastPagePostion.value.x - moveDelta.value.x) - pagePostion.value.x) * 0.1).toFixed(3)
-      pagePostion.value.y = (+pagePostion.value.y + ((lastPagePostion.value.y - moveDelta.value.y) - pagePostion.value.y) * 0.1).toFixed(3)
+      pagePostion.value.x = (
+        +pagePostion.value.x +
+        (lastPagePostion.value.x - moveDelta.value.x - pagePostion.value.x) *
+          0.1
+      ).toFixed(3);
+      pagePostion.value.y = (
+        +pagePostion.value.y +
+        (lastPagePostion.value.y - moveDelta.value.y - pagePostion.value.y) *
+          0.1
+      ).toFixed(3);
       // 卡片
-      this.$refs.cardRef && this.$refs.cardRef.forEach((item, index) => {
-        const cardId = item.dataset.id
-        const x = -pagePostion.value.x + +item.dataset.x + halfClientWidth - item.clientWidth / 2 - 10
-        const y = -pagePostion.value.y + +item.dataset.y + halfClientHeight - item.clientHeight / 2 - 10
-        item.style.transform = `translate3D(${x}px, ${y}px, 0)`
-        if (this.cardData[cardId]?.onChoose && this?.onMove) {
-          this.$refs.cardRef[index].dataset.x = +this.cardData[cardId].x + moveCardDelta.value.x
-          this.$refs.cardRef[index].dataset.y = +this.cardData[cardId].y + moveCardDelta.value.y
-        }
-      })
-      document.body.style.backgroundPositionX = `${-(pagePostion.value.x % 1920)}px`
-      document.body.style.backgroundPositionY = `${-(pagePostion.value.y % 809)}px`
+      this.$refs.cardRef &&
+        this.$refs.cardRef.forEach((item, index) => {
+          const cardId = item.dataset.id;
+          let x = -pagePostion.value.x + +item.dataset.x + halfClientWidth - 10;
+          let y =
+            -pagePostion.value.y + +item.dataset.y + halfClientHeight - 10;
+          const [anchorX, anchorY] = this.cardData[cardId].anchor.split(" ");
+          if (anchorX == "center") {
+            x -= item.clientWidth / 2;
+          } else if (anchorX == "right") {
+            x -= item.clientWidth;
+          }
+          if (anchorY == "center") {
+            y -= item.clientHeight / 2;
+          } else if (anchorY == "bottom") {
+            y -= item.clientHeight;
+          }
+          // if (anchorX == 'left') {
+          //   x += item.clientWidth / 2
+          // } else if (anchorX == 'right') {
+          //   x -= item.clientWidth / 2
+          // }
+          // if (anchorY == 'top') {
+          //   y += item.clientHeight / 2
+          // } else if (anchorY == 'bottom') {
+          //   y -= item.clientHeight / 2
+          // }
+          item.style.transform = `translate3D(${x}px, ${y}px, 0)`;
+          if (this.cardData[cardId]?.onChoose && this?.onMove) {
+            this.$refs.cardRef[index].dataset.x =
+              +this.cardData[cardId].x + moveCardDelta.value.x;
+            this.$refs.cardRef[index].dataset.y =
+              +this.cardData[cardId].y + moveCardDelta.value.y;
+          }
+        });
+      document.body.style.backgroundPositionX = `${-(
+        pagePostion.value.x % 1920
+      )}px`;
+      document.body.style.backgroundPositionY = `${-(
+        pagePostion.value.y % 809
+      )}px`;
       // document.querySelector('.test').innerHTML = `
       //   <p>pagePostionX  ${pagePostion.value.x}</p>
       //   <p>pagePostionY  ${pagePostion.value.y}</p>
@@ -492,62 +603,83 @@ export default {
       //   <p>showCardList  ${this.showCardList}</p>
       //   <p>selectCardList ${this.selectCardList}</p>
       // `
-      document.querySelector('.coordinate').innerHTML = `
-        ${(pagePostion.value.x / 100).toFixed(2)} , ${(pagePostion.value.y / 100).toFixed(2)}
-      `
-      requestAnimationFrame(render)
-    }
+      document.querySelector(".coordinate").innerHTML = `
+        ${(pagePostion.value.x / 100).toFixed(2)} , ${(
+        pagePostion.value.y / 100
+      ).toFixed(2)}
+      `;
+      requestAnimationFrame(render);
+    };
 
-    render()
+    render();
 
     // 滚动
-    document.body.addEventListener('wheel', e => {
+    document.body.addEventListener("wheel", (e) => {
       if (e.deltaY > 0) {
         if (this.shiftKey) {
-          moveDelta.value.x -= 50
+          moveDelta.value.x -= 50;
         } else {
-          moveDelta.value.y -= 50
+          moveDelta.value.y -= 50;
         }
       } else {
         if (this.shiftKey) {
-          moveDelta.value.x += 50
+          moveDelta.value.x += 50;
         } else {
-          moveDelta.value.y += 50
+          moveDelta.value.y += 50;
         }
       }
-      const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2)
-      const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2)
-      this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } })
-    })
+      const urlPosX = (
+        (+lastPagePostion.value.x - moveDelta.value.x) /
+        100
+      ).toFixed(2);
+      const urlPosY = (
+        (+lastPagePostion.value.y - moveDelta.value.y) /
+        100
+      ).toFixed(2);
+      this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } });
+    });
 
     // 判断是否横向滚动
-    document.body.addEventListener('keydown', e => {
-      if (e.key == 'Shift') {
-        this.shiftKey = true
+    document.body.addEventListener("keydown", (e) => {
+      if (e.key == "Shift") {
+        this.shiftKey = true;
       }
-    })
-    document.body.addEventListener('keyup', e => {
-      if (e.key == 'Shift') {
-        this.shiftKey = false
+    });
+    document.body.addEventListener("keyup", (e) => {
+      if (e.key == "Shift") {
+        this.shiftKey = false;
       }
-    })
+    });
 
     // 滚动时判断卡片是否在视野内
-    document.body.addEventListener('wheel', _.throttle(async () => {
-      await this.getCards(parseInt(pagePostion.value.x), parseInt(pagePostion.value.y))
-      checkCards()
-    }, 1000, { 'trailing': false }))
+    document.body.addEventListener(
+      "wheel",
+      _.throttle(
+        async () => {
+          await this.getCards(
+            parseInt(pagePostion.value.x),
+            parseInt(pagePostion.value.y)
+          );
+          checkCards();
+        },
+        1000,
+        { trailing: false }
+      )
+    );
 
     // 是否超出边界
-    const checkCards = (pageX = pagePostion.value.x, pageY = pagePostion.value.y) => {
-      let showCardList = []
+    const checkCards = (
+      pageX = pagePostion.value.x,
+      pageY = pagePostion.value.y
+    ) => {
+      let showCardList = [];
       // const pageX = pagePostion.value.x
       // const pageY = pagePostion.value.y
-      const halfScreenWidth = document.body.clientWidth / 2
-      const halfScreenHeight = document.body.clientHeight / 2
-      const padding = 500
-      Object.keys(this.cardData).forEach(id => {
-        const card = this.cardData[id]
+      const halfScreenWidth = document.body.clientWidth / 2;
+      const halfScreenHeight = document.body.clientHeight / 2;
+      const padding = 500;
+      Object.keys(this.cardData).forEach((id) => {
+        const card = this.cardData[id];
         if (
           pageX < +card.x + padding + halfScreenWidth + card.width / 2 &&
           pageX > +card.x - padding - halfScreenWidth - card.width / 2 &&
@@ -555,46 +687,52 @@ export default {
           pageY > +card.y - padding - halfScreenHeight - card.height / 2 &&
           card.world == this.world.name
         ) {
-          showCardList.push(card.id)
+          showCardList.push(card.id);
         }
-      })
-      this.showCardList = showCardList
-    }
+      });
+      this.showCardList = showCardList;
+    };
 
     // 页面跳转
     const pageJump = async (x = 0, y = 0) => {
-      lastPagePostion.value.x = pagePostion.value.x
-      lastPagePostion.value.y = pagePostion.value.y
-      moveDelta.value.x = +lastPagePostion.value.x - x
-      moveDelta.value.y = +lastPagePostion.value.y - y
-      const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2)
-      const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2)
-      this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } })
-      await this.getCards(x, y)
-      checkCards(x, y)
-    }
-    this.pageJump = pageJump
+      lastPagePostion.value.x = pagePostion.value.x;
+      lastPagePostion.value.y = pagePostion.value.y;
+      moveDelta.value.x = +lastPagePostion.value.x - x;
+      moveDelta.value.y = +lastPagePostion.value.y - y;
+      const urlPosX = (
+        (+lastPagePostion.value.x - moveDelta.value.x) /
+        100
+      ).toFixed(2);
+      const urlPosY = (
+        (+lastPagePostion.value.y - moveDelta.value.y) /
+        100
+      ).toFixed(2);
+      this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } });
+      await this.getCards(x, y);
+      checkCards(x, y);
+    };
+    this.pageJump = pageJump;
 
     // 初始化
     setTimeout(async () => {
-      this.world.name = this.$route.params.world
+      this.world.name = this.$route.params.world;
       // URL跳转
       if (this.$route.params.position) {
-        const position = this.$route.params.position.split(',')
-        pagePostion.value.x = position[0] * 100
-        pagePostion.value.y = position[1] * 100
-        moveDelta.value.x = -position[0] * 100
-        moveDelta.value.y = -position[1] * 100
+        const position = this.$route.params.position.split(",");
+        pagePostion.value.x = position[0] * 100;
+        pagePostion.value.y = position[1] * 100;
+        moveDelta.value.x = -position[0] * 100;
+        moveDelta.value.y = -position[1] * 100;
         // lastPagePostion.value.x = pagePostion.value.x
         // lastPagePostion.value.y = pagePostion.value.y
         // moveDelta.value.x = +lastPagePostion.value.x - position[0] * 100
         // moveDelta.value.y = +lastPagePostion.value.y - position[1] * 100
       }
       // 获取卡片信息
-      await this.getCards(pagePostion.value.x, pagePostion.value.y)
-      checkCards()
+      await this.getCards(pagePostion.value.x, pagePostion.value.y);
+      checkCards();
     }, 0);
-  }
+  },
 };
 </script>
 
@@ -621,66 +759,89 @@ export default {
   <!-- 编辑器 -->
   <div
     ref="editor"
-    class="absolute top-0 bg-light-50 border-2 border-black/20 rounded p-2 transition min-w-50 text-sm space-y-2 z-9999"
+    class="fixed top-0 right-0 w-60 h-screen bg-light-50 border-l-2 border-black/20 p-2 transition transform text-sm space-y-2 z-9999"
     :class="[
-      selectCardList[0] ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
-      !editCheck && '!opacity-0 !pointer-events-none'
+      selectCardList[0]
+        ? 'opacity-100 pointer-events-auto'
+        : 'opacity-0 pointer-events-none translate-x-6',
+      !editCheck && '!opacity-0 !pointer-events-none',
     ]"
   >
     <!-- 编辑器-单选 -->
     <template v-if="selectCardList.length == 1">
-      <p class="font-bold text-dark-50">坐标</p>
+      <p class="text-cyan-600">坐标</p>
       <div v-if="selectCardList[0]" class="flex justify-between">
         <input
           v-model="cardData[selectCardList[0]].x"
-          class="bg-gray-100 p-1 w-22 rounded"
+          class="bg-gray-100 p-1 w-26 rounded"
           type="text"
         />
         <input
           v-model="cardData[selectCardList[0]].y"
-          class="bg-gray-100 p-1 w-22 rounded"
+          class="bg-gray-100 p-1 w-26 rounded"
           type="text"
         />
       </div>
-      <p class="font-bold text-dark-50">内容</p>
+      <p class="text-cyan-600">锚点</p>
+      <input
+        v-model="cardData[selectCardList[0]].anchor"
+        class="bg-gray-100 p-1 rounded w-full"
+        type="text"
+      />
+      <p class="text-cyan-600">内容</p>
       <textarea
         v-if="selectCardList[0]"
         v-model="cardData[selectCardList[0]].content"
-        class="w-full h-30 bg-gray-100 p-1 resize-none block"
+        class="w-full h-30 bg-gray-100 p-1 resize-none block rounded"
       ></textarea>
-      <p class="font-bold text-dark-50">自定义样式</p>
+      <p class="text-cyan-600">自定义样式</p>
       <textarea
         v-if="selectCardList[0]"
         v-model="cardData[selectCardList[0]].class"
-        class="w-full h-20 bg-gray-100 p-1 resize-none block"
+        class="w-full h-20 bg-gray-100 p-1 resize-none block rounded"
       ></textarea>
-      <p class="font-bold text-dark-50">操作</p>
+      <p class="text-cyan-600">操作</p>
       <EditorBtn @click="removeCard()" :icon="'icon-shanchu'" />
     </template>
     <!-- 编辑器-多选 -->
     <template v-if="selectCardList.length > 1">
-      <p class="font-bold text-dark-50">排列</p>
+      <p class="text-cyan-600">排列</p>
       <div class="flex space-x-1">
-        <EditorBtn @click="verticalDistribute()" :icon="'icon-shuipingpailie'" />
-        <EditorBtn @click="horizontalDistribute()" :icon="'icon-chuizhipailie'" />
+        <EditorBtn
+          @click="verticalDistribute()"
+          :icon="'icon-shuipingpailie'"
+        />
+        <EditorBtn
+          @click="horizontalDistribute()"
+          :icon="'icon-chuizhipailie'"
+        />
       </div>
-      <p class="font-bold text-dark-50">对齐</p>
+      <p class="text-cyan-600">对齐</p>
       <div class="flex space-x-1">
         <EditorBtn @click="alignLeft()" :icon="'icon-zuoduiqi'" />
-        <EditorBtn @click="centerHorizontally()" :icon="'icon-hengxiangjuzhongduiqi'" />
+        <EditorBtn
+          @click="centerHorizontally()"
+          :icon="'icon-hengxiangjuzhongduiqi'"
+        />
         <EditorBtn @click="alignRight()" :icon="'icon-youduiqi'" />
         <EditorBtn @click="alignBottom()" :icon="'icon-dibuduiqi'" />
-        <EditorBtn @click="centerVerticaly()" :icon="'icon-shuxiangjuzhongduiqi'" />
+        <EditorBtn
+          @click="centerVerticaly()"
+          :icon="'icon-shuxiangjuzhongduiqi'"
+        />
         <EditorBtn @click="alignTop()" :icon="'icon-dingbuduiqi'" />
       </div>
-      <p class="font-bold text-dark-50">操作</p>
+      <p class="text-cyan-600">操作</p>
       <EditorBtn @click="removeCard()" :icon="'icon-shanchu'" />
     </template>
   </div>
   <!-- 控制台 -->
   <div class="fixed bottom-4 right-4 flex space-x-1 z-9999">
     <Coordinate />
-    <FooterItem class="btn-home opacity-50 transition hover:(opacity-100)" icon="icon-yuandian" />
+    <FooterItem
+      class="btn-home opacity-50 transition hover:(opacity-100)"
+      icon="icon-yuandian"
+    />
     <FooterItem
       @click="onJump = !onJump"
       :class="onJump ? '!opacity-100' : ''"
@@ -702,17 +863,22 @@ export default {
     :open-edit="openEdit"
     :edit-check="editCheck"
     @check-edit="checkEdit"
-    @close-edit="editCheck = false"
+    @close-edit="
+      editCheck = false;
+      editKey = '';
+    "
   />
 </template>
 
 <style>
 @import url(//at.alicdn.com/t/font_3228461_apeclwa2cej.css);
 @import "lxgw-wenkai-screen-webfont/style.css";
+
 * {
   margin: 0;
   padding: 0;
 }
+
 body {
   font-family: "LXGW WenKai Screen", sans-serif !important;
   background: #fffaf3;
