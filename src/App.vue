@@ -43,93 +43,177 @@ export default {
     Coordinate,
   },
   methods: {
+    getCardCoord(id, anchor) {
+      const card = this.cardData[id];
+      const nowAnchor = card.anchor.split(" ");
+      const [nowanchorX, nowanchorY] = [nowAnchor[0], nowAnchor[1]];
+      const newAnchor = anchor.split(" ");
+      const [newAnchorX, newAnchorY] = [newAnchor[0], newAnchor[1]];
+      let [x, y] = [card.x, card.y];
+      if (nowanchorX == "center") {
+        x -= card.width / 2;
+      } else if (nowanchorX == "right") {
+        x -= card.width;
+      }
+      if (nowanchorY == "center") {
+        y -= card.height / 2;
+      } else if (nowanchorY == "bottom") {
+        y -= card.height;
+      }
+      if (newAnchorX == "center") {
+        x += card.width / 2;
+      } else if (newAnchorX == "right") {
+        x += card.width;
+      }
+      if (newAnchorY == "center") {
+        y += card.height / 2;
+      } else if (newAnchorY == "bottom") {
+        y += card.height;
+      }
+      return {
+        x,
+        y,
+      };
+    },
+    // 垂直排列卡片
     verticalDistribute() {
+      // 按y轴顶部排序选中的卡片id
       const sortedList = _.sortBy(this.selectCardList, (id) => {
-        return +this.cardData[id].y;
+        return this.getCardCoord(id, "center top").y;
       });
+      // 获取最顶部卡片的最左侧
+      const firstCard = this.cardData[sortedList[0]];
+      const firstCardCoord = this.getCardCoord(sortedList[0], "left top");
+      const firstCardX = firstCardCoord.x;
+      const firstCardY = firstCardCoord.y;
+      // 按顺序垂直排列卡片
+      let [tempX, tempY] = [firstCardX, (firstCardY + firstCard.height + 10)];
       sortedList.forEach((id, index) => {
         if (index) {
-          const firstCard = this.cardData[sortedList[0]];
-          const lastCard = this.cardData[sortedList[index - 1]];
-          const selfCard = this.cardData[id];
-          this.cardData[id].x =
-            +firstCard.x - (firstCard.width - selfCard.width) / 2;
-          this.cardData[id].y =
-            +lastCard.y + lastCard.height / 2 + selfCard.height / 2 + 10;
+          const nowCard = this.cardData[id];
+          nowCard.x = tempX;
+          nowCard.y = tempY;
+          const nowCardCoord = this.getCardCoord(id, nowCard.anchor);
+          const newCardCoord = this.getCardCoord(id, "left top");
+          nowCard.x += (nowCardCoord.x - newCardCoord.x);
+          nowCard.y += (nowCardCoord.y - newCardCoord.y);
+          tempY += nowCard.height + 10;
         }
       });
       this.updateSelectedCardPostion();
     },
+    // 水平排列卡片
     horizontalDistribute() {
+      // 按x轴左侧排序选中的卡片id
       const sortedList = _.sortBy(this.selectCardList, (id) => {
-        return +this.cardData[id].x;
+        return this.getCardCoord(id, "left center").x;
       });
+      // 获取最左侧卡片的最左侧
+      const firstCard = this.cardData[sortedList[0]];
+      const firstCardCoord = this.getCardCoord(sortedList[0], "left top");
+      const firstCardX = firstCardCoord.x;
+      const firstCardY = firstCardCoord.y;
+      // 按顺序垂直排列卡片
+      let [tempX, tempY] = [(firstCardX + firstCard.width + 10), firstCardY];
       sortedList.forEach((id, index) => {
         if (index) {
-          const firstCard = this.cardData[sortedList[0]];
-          const lastCard = this.cardData[sortedList[index - 1]];
-          const selfCard = this.cardData[id];
-          this.cardData[id].y =
-            +firstCard.y - (firstCard.height - selfCard.height) / 2;
-          this.cardData[id].x =
-            +lastCard.x + lastCard.width / 2 + this.cardData[id].width / 2 + 10;
+          const nowCard = this.cardData[id];
+          nowCard.x = tempX;
+          nowCard.y = tempY;
+          const nowCardCoord = this.getCardCoord(id, nowCard.anchor);
+          const newCardCoord = this.getCardCoord(id, "left top");
+          nowCard.x += (nowCardCoord.x - newCardCoord.x);
+          nowCard.y += (nowCardCoord.y - newCardCoord.y);
+          tempX += nowCard.width + 10;
         }
       });
       this.updateSelectedCardPostion();
     },
+    // 左对齐卡片
     alignLeft() {
       const minX = _.min(
         this.selectCardList.map((id) => {
-          return +this.cardData[id].x - this.cardData[id].width / 2;
+          return this.getCardCoord(id, "left center").x;
         })
       );
       this.selectCardList.forEach((id) => {
-        this.cardData[id].x = minX + this.cardData[id].width / 2;
+        const card = this.cardData[id];
+        card.x = minX;
+        const nowCardCoordX = this.getCardCoord(id, card.anchor).x;
+        const newCardCoordX = this.getCardCoord(id, "left center").x;
+        card.x += (nowCardCoordX - newCardCoordX);
       });
       this.updateSelectedCardPostion();
     },
+    // 垂直居中卡片
     centerHorizontally() {
+      const firstCardCoordX = this.getCardCoord(this.selectCardList[0], "center center").x;
       this.selectCardList.forEach((id) => {
-        this.cardData[id].x = this.cardData[this.selectCardList[0]].x;
+        const card = this.cardData[id];
+        card.x = firstCardCoordX;
+        const nowCardCoordX = this.getCardCoord(id, card.anchor).x;
+        const newCardCoordX = this.getCardCoord(id, "center center").x;
+        card.x += (nowCardCoordX - newCardCoordX);
       });
       this.updateSelectedCardPostion();
     },
+    // 右对齐卡片
     alignRight() {
       const maxX = _.max(
         this.selectCardList.map((id) => {
-          return +this.cardData[id].x + this.cardData[id].width / 2;
+          return this.getCardCoord(id, "right center").x;
         })
       );
       this.selectCardList.forEach((id) => {
-        this.cardData[id].x = maxX - this.cardData[id].width / 2;
+        const card = this.cardData[id];
+        card.x = maxX;
+        const nowCardCoordX = this.getCardCoord(id, card.anchor).x;
+        const newCardCoordX = this.getCardCoord(id, "right center").x;
+        card.x += (nowCardCoordX - newCardCoordX);
       });
       this.updateSelectedCardPostion();
     },
+    // 顶部对齐卡片
     alignTop() {
       const minY = _.min(
         this.selectCardList.map((id) => {
-          return +this.cardData[id].y - this.cardData[id].height / 2;
+          return this.getCardCoord(id, "center top").y;
         })
       );
       this.selectCardList.forEach((id) => {
-        this.cardData[id].y = minY + this.cardData[id].height / 2;
+        const card = this.cardData[id];
+        card.y = minY;
+        const nowCardCoordY = this.getCardCoord(id, card.anchor).y;
+        const newCardCoordY = this.getCardCoord(id, "center top").y;
+        card.y += (nowCardCoordY - newCardCoordY);
       });
       this.updateSelectedCardPostion();
     },
+    // 水平居中卡片
     centerVerticaly() {
+      const firstCardCoordY = this.getCardCoord(this.selectCardList[0], "center center").y;
       this.selectCardList.forEach((id) => {
-        this.cardData[id].y = this.cardData[this.selectCardList[0]].y;
+        const card = this.cardData[id];
+        card.y = firstCardCoordY;
+        const nowCardCoordY = this.getCardCoord(id, card.anchor).y;
+        const newCardCoordY = this.getCardCoord(id, "center center").y;
+        card.y += (nowCardCoordY - newCardCoordY);
       });
       this.updateSelectedCardPostion();
     },
+    // 底部对齐卡片
     alignBottom() {
       const maxY = _.max(
         this.selectCardList.map((id) => {
-          return +this.cardData[id].y + this.cardData[id].height / 2;
+          return this.getCardCoord(id, "center bottom").y;
         })
       );
       this.selectCardList.forEach((id) => {
-        this.cardData[id].y = maxY - this.cardData[id].height / 2;
+        const card = this.cardData[id];
+        card.y = maxY;
+        const nowCardCoordY = this.getCardCoord(id, card.anchor).y;
+        const newCardCoordY = this.getCardCoord(id, "center bottom").y;
+        card.y += (nowCardCoordY - newCardCoordY);
       });
       this.updateSelectedCardPostion();
     },
@@ -868,6 +952,10 @@ export default {
       editKey = '';
     "
   />
+  <!-- 版权 -->
+  <div class="fixed bottom-4 left-4 text-xs text-zinc-600">
+    <p>© 2017-2022 陆陆侠. 苏ICP备XXXXXXXX号</p>
+  </div>
 </template>
 
 <style>
