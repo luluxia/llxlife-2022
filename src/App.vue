@@ -43,6 +43,7 @@ export default {
     Coordinate,
   },
   methods: {
+    // 获取卡片指定锚点位置的坐标
     getCardCoord(id, anchor) {
       const card = this.cardData[id];
       const nowAnchor = card.anchor.split(" ");
@@ -76,7 +77,7 @@ export default {
       };
     },
     // 垂直排列卡片
-    verticalDistribute() {
+    verticalAlign() {
       // 按y轴顶部排序选中的卡片id
       const sortedList = _.sortBy(this.selectCardList, (id) => {
         return this.getCardCoord(id, "center top").y;
@@ -87,7 +88,7 @@ export default {
       const firstCardX = firstCardCoord.x;
       const firstCardY = firstCardCoord.y;
       // 按顺序垂直排列卡片
-      let [tempX, tempY] = [firstCardX, (firstCardY + firstCard.height + 10)];
+      let [tempX, tempY] = [firstCardX, firstCardY + firstCard.height + 10];
       sortedList.forEach((id, index) => {
         if (index) {
           const nowCard = this.cardData[id];
@@ -95,15 +96,15 @@ export default {
           nowCard.y = tempY;
           const nowCardCoord = this.getCardCoord(id, nowCard.anchor);
           const newCardCoord = this.getCardCoord(id, "left top");
-          nowCard.x += (nowCardCoord.x - newCardCoord.x);
-          nowCard.y += (nowCardCoord.y - newCardCoord.y);
+          nowCard.x += nowCardCoord.x - newCardCoord.x;
+          nowCard.y += nowCardCoord.y - newCardCoord.y;
           tempY += nowCard.height + 10;
         }
       });
       this.updateSelectedCardPostion();
     },
     // 水平排列卡片
-    horizontalDistribute() {
+    horizontalAlign() {
       // 按x轴左侧排序选中的卡片id
       const sortedList = _.sortBy(this.selectCardList, (id) => {
         return this.getCardCoord(id, "left center").x;
@@ -114,7 +115,7 @@ export default {
       const firstCardX = firstCardCoord.x;
       const firstCardY = firstCardCoord.y;
       // 按顺序垂直排列卡片
-      let [tempX, tempY] = [(firstCardX + firstCard.width + 10), firstCardY];
+      let [tempX, tempY] = [firstCardX + firstCard.width + 10, firstCardY];
       sortedList.forEach((id, index) => {
         if (index) {
           const nowCard = this.cardData[id];
@@ -122,9 +123,79 @@ export default {
           nowCard.y = tempY;
           const nowCardCoord = this.getCardCoord(id, nowCard.anchor);
           const newCardCoord = this.getCardCoord(id, "left top");
-          nowCard.x += (nowCardCoord.x - newCardCoord.x);
-          nowCard.y += (nowCardCoord.y - newCardCoord.y);
+          nowCard.x += nowCardCoord.x - newCardCoord.x;
+          nowCard.y += nowCardCoord.y - newCardCoord.y;
           tempX += nowCard.width + 10;
+        }
+      });
+      this.updateSelectedCardPostion();
+    },
+    // 垂直分布卡片
+    verticalDistribute() {
+      // 按x轴左侧排序选中的卡片id
+      const sortedList = _.sortBy(this.selectCardList, (id) => {
+        return this.getCardCoord(id, "center top").y;
+      });
+      const firstCard = this.cardData[sortedList[0]];
+      const topCardY = this.getCardCoord(sortedList[0], "center top").y;
+      const bottomCardY = this.getCardCoord(
+        sortedList[sortedList.length - 1],
+        "center bottom"
+      ).y;
+      const selectCardHeight = bottomCardY - topCardY;
+      const allCardHeight = _.reduce(
+        this.selectCardList,
+        (sum, id) => {
+          return sum + this.cardData[id].height;
+        },
+        0
+      );
+      const spaceBetween =
+        (selectCardHeight - allCardHeight) / (sortedList.length - 1);
+      let tempY = topCardY + firstCard.height + spaceBetween;
+      sortedList.forEach((id, index) => {
+        if (index) {
+          const nowCard = this.cardData[id];
+          nowCard.y = tempY;
+          const nowCardCoord = this.getCardCoord(id, nowCard.anchor);
+          const newCardCoord = this.getCardCoord(id, "center top");
+          nowCard.y += nowCardCoord.y - newCardCoord.y;
+          tempY += nowCard.height + spaceBetween;
+        }
+      });
+      this.updateSelectedCardPostion();
+    },
+    // 水平分布卡片
+    horizontalDistribute() {
+      // 按x轴左侧排序选中的卡片id
+      const sortedList = _.sortBy(this.selectCardList, (id) => {
+        return this.getCardCoord(id, "left center").x;
+      });
+      const firstCard = this.cardData[sortedList[0]];
+      const leftCardX = this.getCardCoord(sortedList[0], "left center").x;
+      const rightCardX = this.getCardCoord(
+        sortedList[sortedList.length - 1],
+        "right center"
+      ).x;
+      const selectCardWidth = rightCardX - leftCardX;
+      const allCardWidth = _.reduce(
+        this.selectCardList,
+        (sum, id) => {
+          return sum + this.cardData[id].width;
+        },
+        0
+      );
+      const spaceBetween =
+        (selectCardWidth - allCardWidth) / (sortedList.length - 1);
+      let tempX = leftCardX + firstCard.width + spaceBetween;
+      sortedList.forEach((id, index) => {
+        if (index) {
+          const nowCard = this.cardData[id];
+          nowCard.x = tempX;
+          const nowCardCoord = this.getCardCoord(id, nowCard.anchor);
+          const newCardCoord = this.getCardCoord(id, "left center");
+          nowCard.x += nowCardCoord.x - newCardCoord.x;
+          tempX += nowCard.width + spaceBetween;
         }
       });
       this.updateSelectedCardPostion();
@@ -141,19 +212,22 @@ export default {
         card.x = minX;
         const nowCardCoordX = this.getCardCoord(id, card.anchor).x;
         const newCardCoordX = this.getCardCoord(id, "left center").x;
-        card.x += (nowCardCoordX - newCardCoordX);
+        card.x += nowCardCoordX - newCardCoordX;
       });
       this.updateSelectedCardPostion();
     },
     // 垂直居中卡片
     centerHorizontally() {
-      const firstCardCoordX = this.getCardCoord(this.selectCardList[0], "center center").x;
+      const firstCardCoordX = this.getCardCoord(
+        this.selectCardList[0],
+        "center center"
+      ).x;
       this.selectCardList.forEach((id) => {
         const card = this.cardData[id];
         card.x = firstCardCoordX;
         const nowCardCoordX = this.getCardCoord(id, card.anchor).x;
         const newCardCoordX = this.getCardCoord(id, "center center").x;
-        card.x += (nowCardCoordX - newCardCoordX);
+        card.x += nowCardCoordX - newCardCoordX;
       });
       this.updateSelectedCardPostion();
     },
@@ -169,7 +243,7 @@ export default {
         card.x = maxX;
         const nowCardCoordX = this.getCardCoord(id, card.anchor).x;
         const newCardCoordX = this.getCardCoord(id, "right center").x;
-        card.x += (nowCardCoordX - newCardCoordX);
+        card.x += nowCardCoordX - newCardCoordX;
       });
       this.updateSelectedCardPostion();
     },
@@ -185,19 +259,22 @@ export default {
         card.y = minY;
         const nowCardCoordY = this.getCardCoord(id, card.anchor).y;
         const newCardCoordY = this.getCardCoord(id, "center top").y;
-        card.y += (nowCardCoordY - newCardCoordY);
+        card.y += nowCardCoordY - newCardCoordY;
       });
       this.updateSelectedCardPostion();
     },
     // 水平居中卡片
     centerVerticaly() {
-      const firstCardCoordY = this.getCardCoord(this.selectCardList[0], "center center").y;
+      const firstCardCoordY = this.getCardCoord(
+        this.selectCardList[0],
+        "center center"
+      ).y;
       this.selectCardList.forEach((id) => {
         const card = this.cardData[id];
         card.y = firstCardCoordY;
         const nowCardCoordY = this.getCardCoord(id, card.anchor).y;
         const newCardCoordY = this.getCardCoord(id, "center center").y;
-        card.y += (nowCardCoordY - newCardCoordY);
+        card.y += nowCardCoordY - newCardCoordY;
       });
       this.updateSelectedCardPostion();
     },
@@ -213,7 +290,7 @@ export default {
         card.y = maxY;
         const nowCardCoordY = this.getCardCoord(id, card.anchor).y;
         const newCardCoordY = this.getCardCoord(id, "center bottom").y;
-        card.y += (nowCardCoordY - newCardCoordY);
+        card.y += nowCardCoordY - newCardCoordY;
       });
       this.updateSelectedCardPostion();
     },
@@ -891,13 +968,12 @@ export default {
     <template v-if="selectCardList.length > 1">
       <p class="text-cyan-600">排列</p>
       <div class="flex space-x-1">
-        <EditorBtn
-          @click="verticalDistribute()"
-          :icon="'icon-shuipingpailie'"
-        />
+        <EditorBtn @click="verticalAlign()" :icon="'icon-shuipingpailie'" />
+        <EditorBtn @click="horizontalAlign()" :icon="'icon-chuizhipailie'" />
+        <EditorBtn @click="verticalDistribute()" :icon="'icon-shuxiangfenbu'" />
         <EditorBtn
           @click="horizontalDistribute()"
-          :icon="'icon-chuizhipailie'"
+          :icon="'icon-hengxiangfenbu'"
         />
       </div>
       <p class="text-cyan-600">对齐</p>
@@ -954,12 +1030,17 @@ export default {
   />
   <!-- 版权 -->
   <div class="fixed bottom-4 left-4 text-xs text-zinc-600">
-    <p>© 2017-2022 陆陆侠. 苏ICP备XXXXXXXX号</p>
+    <p>
+      © 2017-2022 陆陆侠.
+      <a href="https://beian.miit.gov.cn" target="_blank"
+        >苏ICP备2022014594号</a
+      >
+    </p>
   </div>
 </template>
 
 <style>
-@import url(//at.alicdn.com/t/font_3228461_apeclwa2cej.css);
+@import url(//at.alicdn.com/t/font_3228461_7nm8o9vxw6e.css);
 @import "lxgw-wenkai-screen-webfont/style.css";
 
 * {
