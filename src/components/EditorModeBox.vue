@@ -10,7 +10,7 @@ const editKey = reactive('')
   >
     <template v-if="editCheck">
       <p>当前正处于创造模式中</p>
-      <p @click="$emit('closeEdit')" class="text-blue-dark inline-block">关闭创造模式</p>
+      <p @click="$emit('closeEdit')" class="text-blue-dark inline-block text-cyan-600">关闭创造模式</p>
     </template>
     <template v-else>
       <p>正在启动创造模式……</p>

@@ -8,5 +8,6 @@ export default defineConfig({
     range(20, 10, 10).map(i => `w-${i}`),
     range(10, 0, 10).map(i => `opacity-${i}`),
     range(10, 0, 10).map(i => `bg-opacity-${i}`),
+    '!md:w-200'
   ],
 });

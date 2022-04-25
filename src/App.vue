@@ -27,20 +27,19 @@ export default {
       cardBlock: [], // 已加载的区块
       zIndexTemp: 0, // 临时卡片层级,
       shiftKey: false, // shift键是否按下
-      url: "//127.0.0.1:8080/api/rest/hanakoi/",
-
+      url: "//127.0.0.1:8080/api/rest/hanakoi/", // 接口地址
       pageJump: null,
     };
   },
   components: {
-    CardContent,
-    EditorBtn,
-    CardDragBar,
-    Selection,
-    EditorModeBox,
-    FooterItem,
-    JumpTargetBox,
-    Coordinate,
+    CardContent, // 卡片内容
+    EditorBtn, // 编辑按钮
+    CardDragBar, // 卡片拖拽条
+    Selection, // 选择框
+    EditorModeBox, // 编辑模式框
+    FooterItem, // 底部按钮
+    JumpTargetBox, // 跳转目标框
+    Coordinate, // 坐标
   },
   methods: {
     // 获取卡片指定锚点位置的坐标
@@ -50,7 +49,7 @@ export default {
       const [nowanchorX, nowanchorY] = [nowAnchor[0], nowAnchor[1]];
       const newAnchor = anchor.split(" ");
       const [newAnchorX, newAnchorY] = [newAnchor[0], newAnchor[1]];
-      let [x, y] = [card.x, card.y];
+      let [x, y] = [parseInt(card.x), parseInt(card.y)];
       if (nowanchorX == "center") {
         x -= card.width / 2;
       } else if (nowanchorX == "right") {
@@ -294,6 +293,49 @@ export default {
       });
       this.updateSelectedCardPostion();
     },
+    // 锁定/解锁卡片层级
+    changeFixed() {
+      const cardId = this.selectCardList[0];
+      const card = this.cardData[cardId];
+      if (card.fixed_at) {
+        axios
+          .post(
+            this.url + "card/relieved",
+            {
+              id: cardId,
+            },
+            {
+              headers: {
+                "Content-Type": "application/json",
+                "x-hasura-world": this.$route.params.world,
+                "x-hasura-key": this.editKey,
+              },
+            }
+          )
+          .then(() => {
+            card.fixed_at = "";
+          });
+      } else {
+        axios
+          .post(
+            this.url + "card/fixed",
+            {
+              id: cardId,
+              fixed_at: card.updated_at,
+            },
+            {
+              headers: {
+                "Content-Type": "application/json",
+                "x-hasura-world": this.$route.params.world,
+                "x-hasura-key": this.editKey,
+              },
+            }
+          )
+          .then(() => {
+            card.fixed_at = card.updated_at;
+          });
+      }
+    },
     removeCard() {
       this.showCardList = this.showCardList.filter((id) => {
         return !this.selectCardList.includes(id);
@@ -410,19 +452,21 @@ export default {
       this.sortCard();
       this.zIndexTemp = length;
     },
-    "$route.hash"(hash) {
-      if (hash) {
-        const hashData = hash.split("/");
-        const world = hashData[0].slice(1);
-        const position = hashData[1].split(",");
-        if (world != this.$route.params.world) {
-          this.world.name = world;
-          this.cardBlock = [];
-        }
-        this.pageJump(position[0] * 100, position[1] * 100);
-        this.$router.replace(`/world/${hash.slice(1)}`);
-      }
-    },
+    // "$route.hash"(hash) {
+    //   if (hash) {
+    //     const hashData = hash.split("/");
+    //     const world = hashData[0].slice(1);
+    //     const position = hashData[1].split(",");
+    //     if (world != this.$route.params.world) {
+    //       this.world.name = world;
+    //       this.cardBlock = [];
+    //       this.editCheck = false;
+    //       this.editKey = "";
+    //     }
+    //     this.pageJump(position[0] * 100, position[1] * 100);
+    //     this.$router.replace(`/world/${hash.slice(1)}`);
+    //   }
+    // },
   },
   mounted() {
     const pagePostion = ref({ x: 0, y: 0 }); // 当前页面的位置
@@ -440,7 +484,41 @@ export default {
     const _this = this;
     let allCardDom = null;
 
-    interact("#app")
+    // 监听URL变化
+    window.addEventListener("popstate", () => {
+      if (this.$route.hash) {
+        const hashData = this.$route.hash.split("/");
+        const world = hashData[0].slice(1);
+        let position = hashData[1].split(",");
+        const mode = hashData[2];
+        position[0] *= 100;
+        position[1] *= 100;
+        if (mode == "article") {
+          position[1] += document.body.clientHeight / 2 - 30;
+        }
+        if (world != this.$route.params.world) {
+          this.world.name = world;
+          this.cardBlock = [];
+          this.editCheck = false;
+          this.editKey = "";
+        }
+        this.pageJump(position[0], position[1]);
+        this.$router.replace(
+          `/world/${world}/${(position[0] / 100).toFixed(2)},${(
+            position[1] / 100
+          ).toFixed(2)}`
+        );
+      } else {
+        const position = this.$route.params.position.split(",");
+        this.world.name = this.$route.params.world;
+        this.cardBlock = [];
+        this.editCheck = false;
+        this.editKey = "";
+        this.pageJump(position[0] * 100, position[1] * 100);
+      }
+    });
+
+    interact("#view")
       .styleCursor(false)
       .draggable({
         listeners: {
@@ -611,8 +689,9 @@ export default {
               const cardId = res.data.card.id;
               if (cardId) {
                 const newCardData = {
-                  id: cardId,
+                  ...res.data.card,
                   ...card,
+                  world: _this.$route.params.world,
                 };
                 _this.cardData[cardId] = newCardData;
                 _this.showCardList.push(cardId);
@@ -639,11 +718,13 @@ export default {
             _this.onMove = true;
 
             // 更新卡片层级
-            _this.zIndexTemp++;
-            _this.cardData[cardId].zIndex = _this.zIndexTemp;
-            _this.selectCardList.forEach((id) => {
-              _this.cardData[id].zIndex = _this.zIndexTemp;
-            });
+            if (!_this.cardData[cardId].fixed_at) {
+              _this.zIndexTemp++;
+              _this.cardData[cardId].zIndex = _this.zIndexTemp;
+              _this.selectCardList.forEach((id) => {
+                _this.cardData[id].zIndex = _this.zIndexTemp;
+              });
+            }
           },
           move(event) {
             moveCardDelta.value.x = event.clientX - event.x0;
@@ -679,7 +760,9 @@ export default {
             this.selectCardList = [+cardId];
             // this.$refs.editor.style.transform = `translate3d(${event.x + 10}px, ${event.y + 10}px, 0)`
             this.zIndexTemp++;
-            this.cardData[cardId].zIndex = this.zIndexTemp;
+            if (!_this.cardData[cardId].fixed_at) {
+              this.cardData[cardId].zIndex = this.zIndexTemp;
+            }
           }
         }
       });
@@ -776,6 +859,8 @@ export default {
 
     // 滚动
     document.body.addEventListener("wheel", (e) => {
+      if (e.target.nodeName == "INPUT" || e.target.nodeName == "TEXTAREA")
+        return;
       if (e.deltaY > 0) {
         if (this.shiftKey) {
           moveDelta.value.x -= 50;
@@ -834,22 +919,33 @@ export default {
       pageY = pagePostion.value.y
     ) => {
       let showCardList = [];
-      // const pageX = pagePostion.value.x
-      // const pageY = pagePostion.value.y
       const halfScreenWidth = document.body.clientWidth / 2;
       const halfScreenHeight = document.body.clientHeight / 2;
       const padding = 500;
       Object.keys(this.cardData).forEach((id) => {
         const card = this.cardData[id];
+        const cardTop = this.getCardCoord(id, "center top").y;
+        const cardBottom = this.getCardCoord(id, "center bottom").y;
+        const cardLeft = this.getCardCoord(id, "left center").x;
+        const cardRight = this.getCardCoord(id, "right center").x;
         if (
-          pageX < +card.x + padding + halfScreenWidth + card.width / 2 &&
-          pageX > +card.x - padding - halfScreenWidth - card.width / 2 &&
-          pageY < +card.y + padding + halfScreenHeight + card.height / 2 &&
-          pageY > +card.y - padding - halfScreenHeight - card.height / 2 &&
+          pageX < cardLeft + padding + halfScreenWidth &&
+          pageX > cardRight - padding - halfScreenWidth &&
+          pageY < cardBottom + padding + halfScreenHeight &&
+          pageY > cardTop - padding - halfScreenHeight &&
           card.world == this.world.name
         ) {
           showCardList.push(card.id);
         }
+        // if (
+        //   pageX < +card.x + padding + halfScreenWidth + card.width / 2 &&
+        //   pageX > +card.x - padding - halfScreenWidth - card.width / 2 &&
+        //   pageY < +card.y + padding + halfScreenHeight + card.height / 2 &&
+        //   pageY > +card.y - padding - halfScreenHeight - card.height / 2 &&
+        //   card.world == this.world.name
+        // ) {
+        //   showCardList.push(card.id);
+        // }
       });
       this.showCardList = showCardList;
     };
@@ -900,6 +996,7 @@ export default {
 <template>
   <!-- 卡片 -->
   <div id="view" class="w-screen h-screen">
+    <TransitionGroup name="card" tag="div">
     <div
       v-for="(id, index) in showCardList"
       :key="cardData[id].id"
@@ -914,6 +1011,7 @@ export default {
       <CardDragBar v-if="editCheck" />
       <CardContent :cardData="cardData[id]" />
     </div>
+    </TransitionGroup>
   </div>
   <!-- 选框 -->
   <Selection />
@@ -935,12 +1033,12 @@ export default {
         <input
           v-model="cardData[selectCardList[0]].x"
           class="bg-gray-100 p-1 w-26 rounded"
-          type="text"
+          type="number"
         />
         <input
           v-model="cardData[selectCardList[0]].y"
           class="bg-gray-100 p-1 w-26 rounded"
-          type="text"
+          type="number"
         />
       </div>
       <p class="text-cyan-600">锚点</p>
@@ -962,7 +1060,17 @@ export default {
         class="w-full h-20 bg-gray-100 p-1 resize-none block rounded"
       ></textarea>
       <p class="text-cyan-600">操作</p>
-      <EditorBtn @click="removeCard()" :icon="'icon-shanchu'" />
+      <div class="flex space-x-1">
+        <EditorBtn @click="removeCard()" :icon="'icon-shanchu'" />
+        <EditorBtn
+          @click="changeFixed()"
+          :icon="
+            cardData[selectCardList[0]].fixed_at
+              ? 'icon-suoding'
+              : 'icon-jiesuo'
+          "
+        />
+      </div>
     </template>
     <!-- 编辑器-多选 -->
     <template v-if="selectCardList.length > 1">
@@ -1029,7 +1137,7 @@ export default {
     "
   />
   <!-- 版权 -->
-  <div class="fixed bottom-4 left-4 text-xs text-zinc-600">
+  <div class="fixed bottom-4 left-4 text-xs text-zinc-600 z-9999 <md:hidden">
     <p>
       © 2017-2022 陆陆侠.
       <a href="https://beian.miit.gov.cn" target="_blank"
@@ -1040,7 +1148,7 @@ export default {
 </template>
 
 <style>
-@import url(//at.alicdn.com/t/font_3228461_7nm8o9vxw6e.css);
+@import url(//at.alicdn.com/t/font_3228461_j3ffvg5h4gs.css);
 @import "lxgw-wenkai-screen-webfont/style.css";
 
 * {
@@ -1053,5 +1161,13 @@ body {
   background: #fffaf3;
   background-image: url("/bg.png");
   background-size: 1920px 809px;
+}
+.card-enter-active,
+.card-leave-active {
+  transition: opacity 0.1s;
+}
+.card-enter-from,
+.card-leave-to {
+  opacity: 0;
 }
 </style>

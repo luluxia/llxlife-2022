@@ -60,6 +60,7 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
     font-size: 1.25em
     line-height: 1
     letter-spacing: 0.1em !important
+    font-weight: normal
   h2
     font-weight: normal
 .purple
