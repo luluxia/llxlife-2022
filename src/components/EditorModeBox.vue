@@ -1,7 +1,7 @@
 <script setup>
 import { reactive } from 'vue'
 defineProps(['openEdit', 'editCheck'])
-const editKey = reactive('')
+let editKey = reactive('')
 </script>
 <template>
   <div
