@@ -921,7 +921,7 @@ export default {
       let showCardList = [];
       const halfScreenWidth = document.body.clientWidth / 2;
       const halfScreenHeight = document.body.clientHeight / 2;
-      const padding = 500;
+      const padding = 1000;
       Object.keys(this.cardData).forEach((id) => {
         const card = this.cardData[id];
         const cardTop = this.getCardCoord(id, "center top").y;
