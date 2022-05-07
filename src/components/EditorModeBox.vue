@@ -1,7 +1,8 @@
 <script setup>
 import { reactive } from 'vue'
-defineProps(['openEdit', 'editCheck'])
-let editKey = reactive('')
+defineProps(['openEdit', 'editCheck', 'modelValue'])
+defineEmits(['update:modelValue', 'checkEdit'])
+let state = reactive({key: ''})
 </script>
 <template>
   <div
@@ -10,6 +11,12 @@ let editKey = reactive('')
   >
     <template v-if="editCheck">
       <p>当前正处于创造模式中</p>
+      <p>移动步进：</p>
+      <input
+        :value="modelValue"
+        @input="$emit('update:modelValue', $event.target.value)"
+        class="bg-gray-100 p-1 w-22 rounded-sm border-black/20 border-2 mr-2 mt-1"
+      />
       <p @click="$emit('closeEdit')" class="text-blue-dark inline-block text-cyan-600">关闭创造模式</p>
     </template>
     <template v-else>
@@ -19,9 +26,9 @@ let editKey = reactive('')
       <input
         class="bg-gray-100 mt-1 p-1 w-22 rounded-sm border-black/20 border-2 mr-2"
         type="password"
-        v-model="editKey"
+        v-model="state.key"
       />
-      <p @click="$emit('checkEdit', editKey)" class="inline-block text-cyan-600">确认密钥</p>
+      <p @click="$emit('checkEdit', state.key)" class="inline-block text-cyan-600">确认密钥</p>
     </template>
   </div>
 </template>

@@ -11,35 +11,38 @@ import EditorModeBox from "./components/EditorModeBox.vue";
 import FooterItem from "./components/FooterItem.vue";
 import JumpTargetBox from "./components/JumpTargetBox.vue";
 import Coordinate from "./components/Coordinate.vue";
+import Footer from "./components/Footer.vue";
 export default {
   data() {
     return {
-      world: {}, // 世界信息
-      cardData: {}, // 已获取的卡片数据
-      showCardList: [], // 当前显示的卡片列表
-      selectCardList: [], // 当前选中的卡片列表
-      onMove: false, // 是否正在移动
-      onJump: false, // 是否开启跳转
-      openEdit: false, // 是否开启编辑
-      editKey: "", // 编辑密码
-      editCheck: false, // 编辑密码是否正确
+      world: {},                        // 世界信息
+      cardData: {},                     // 已获取的卡片数据
+      showCardList: [],                 // 当前显示的卡片列表
+      selectCardList: [],               // 当前选中的卡片列表
+      onMove: false,                    // 是否正在移动
+      onJump: false,                    // 是否开启跳转
+      openEdit: false,                  // 是否开启编辑
+      editKey: "",                      // 编辑密码
+      editCheck: false,                 // 编辑密码是否正确
+      moveStep: 0,                      // 移动步长
       jumpTarget: { x: null, y: null }, // 跳转目标点
-      cardBlock: [], // 已加载的区块
-      zIndexTemp: 0, // 临时卡片层级,
-      shiftKey: false, // shift键是否按下
-      url: "//127.0.0.1:8080/api/rest/hanakoi/", // 接口地址
-      pageJump: null,
+      cardBlock: [],                    // 已加载的区块
+      zIndexTemp: 0,                    // 临时卡片层级,
+      shiftKey: false,                  // shift键是否按下
+      url: "//hasura.llx.life/api/rest/hanakoi/", // 接口地址
+      pageJump: null,                   // 跳转页面函数
     };
   },
   components: {
-    CardContent, // 卡片内容
-    EditorBtn, // 编辑按钮
-    CardDragBar, // 卡片拖拽条
-    Selection, // 选择框
-    EditorModeBox, // 编辑模式框
-    FooterItem, // 底部按钮
-    JumpTargetBox, // 跳转目标框
-    Coordinate, // 坐标
+    CardContent,  // 卡片内容
+    EditorBtn,    // 编辑按钮
+    CardDragBar,  // 卡片拖拽条
+    Selection,    // 选择框
+    EditorModeBox,// 编辑模式框
+    FooterItem,   // 底部按钮
+    JumpTargetBox,// 跳转目标框
+    Coordinate,   // 坐标
+    Footer,       // 底部版权
   },
   methods: {
     // 获取卡片指定锚点位置的坐标
@@ -404,28 +407,28 @@ export default {
       });
     },
     updateCardPosition(id, x, y) {
-      // axios
-      //   .post(
-      //     this.url + "card/move",
-      //     {
-      //       id: +id,
-      //       x: parseInt(x),
-      //       y: parseInt(y),
-      //     },
-      //     {
-      //       headers: {
-      //         "Content-Type": "application/json",
-      //         "x-hasura-world": this.$route.params.world,
-      //         "x-hasura-key": this.editKey,
-      //       },
-      //     }
-      //   )
-      //   .then((res) => {
-      //     const returnData = res.data.card;
-      //     const id = returnData.id;
-      //     const updated_at = returnData.updated_at;
-      //     this.cardData[id].updated_at = updated_at;
-      //   });
+      axios
+        .post(
+          this.url + "card/move",
+          {
+            id: +id,
+            x: parseInt(x),
+            y: parseInt(y),
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "x-hasura-world": this.$route.params.world,
+              "x-hasura-key": this.editKey,
+            },
+          }
+        )
+        .then((res) => {
+          const returnData = res.data.card;
+          const id = returnData.id;
+          const updated_at = returnData.updated_at;
+          this.cardData[id].updated_at = updated_at;
+        });
     },
     updateSelectedCardPostion() {
       this.selectCardList.forEach((cardId) => {
@@ -448,43 +451,24 @@ export default {
     },
   },
   watch: {
+    // 监听范围内卡片并排序
     "showCardList.length"(length) {
       this.sortCard();
       this.zIndexTemp = length;
     },
-    // "$route.hash"(hash) {
-    //   if (hash) {
-    //     const hashData = hash.split("/");
-    //     const world = hashData[0].slice(1);
-    //     const position = hashData[1].split(",");
-    //     if (world != this.$route.params.world) {
-    //       this.world.name = world;
-    //       this.cardBlock = [];
-    //       this.editCheck = false;
-    //       this.editKey = "";
-    //     }
-    //     this.pageJump(position[0] * 100, position[1] * 100);
-    //     this.$router.replace(`/world/${hash.slice(1)}`);
-    //   }
-    // },
   },
   mounted() {
-    const pagePostion = ref({ x: 0, y: 0 }); // 当前页面的位置
-    const lastPagePostion = ref({ x: 0, y: 0 }); // 上次页面的位置
-    const moveDelta = ref({ x: 0, y: 0 }); // 每次移动时距离上次页面位置的偏移量
-
-    const moveCardDelta = ref({ x: 0, y: 0 }); // 卡片移动偏移量
-
-    const lastSelectionPostion = ref({ x: 0, y: 0 }); // 选框初始位置
-
-    const selection = document.querySelector(".selection");
+    const pagePostion = ref({ x: 0, y: 0 });                // 当前页面的位置
+    const lastPagePostion = ref({ x: 0, y: 0 });            // 上次页面的位置
+    const moveDelta = ref({ x: 0, y: 0 });                  // 每次移动时距离上次页面位置的偏移量
+    const moveCardDelta = ref({ x: 0, y: 0 });              // 卡片移动偏移量
+    const lastSelectionPostion = ref({ x: 0, y: 0 });       // 选框初始位置
+    const selection = document.querySelector(".selection"); // 选框
+    const _this = this;
     let onSelection = false;
     let haveMoved = false;
-
-    const _this = this;
     let allCardDom = null;
-
-    // 监听URL变化
+    // 监听路由哈希变化
     window.addEventListener("popstate", () => {
       if (this.$route.hash) {
         const hashData = this.$route.hash.split("/");
@@ -493,7 +477,10 @@ export default {
         const mode = hashData[2];
         position[0] *= 100;
         position[1] *= 100;
-        if (mode == "article") {
+        if (mode == "t") {
+          position[1] += document.body.clientHeight / 2 - 30;
+        } else if (mode == "lt") {
+          position[0] += document.body.clientWidth / 2 - 30;
           position[1] += document.body.clientHeight / 2 - 30;
         }
         if (world != this.$route.params.world) {
@@ -517,7 +504,6 @@ export default {
         this.pageJump(position[0] * 100, position[1] * 100);
       }
     });
-
     interact("#view")
       .styleCursor(false)
       .draggable({
@@ -560,7 +546,6 @@ export default {
               selection.style.top = selectionTop + "px";
               selection.style.width = selectionWidth + "px";
               selection.style.height = selectionHeight + "px";
-
               allCardDom.forEach((card) => {
                 const cardRect = card.getBoundingClientRect();
                 const cardId = card.dataset.id;
@@ -584,23 +569,11 @@ export default {
             haveMoved = false;
             selection.style.opacity = 0;
             // 更新URL
-            const urlPosX = (
-              (+lastPagePostion.value.x - moveDelta.value.x) /
-              100
-            ).toFixed(2);
-            const urlPosY = (
-              (+lastPagePostion.value.y - moveDelta.value.y) /
-              100
-            ).toFixed(2);
-            _this.$router.replace({
-              params: { position: `${urlPosX},${urlPosY}` },
-            });
+            const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2);
+            const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2);
+            _this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } });
             // 更新卡片
-            _this
-              .getCards(
-                parseInt(pagePostion.value.x),
-                parseInt(pagePostion.value.y)
-              )
+            _this.getCards(parseInt(pagePostion.value.x), parseInt(pagePostion.value.y))
               .then(() => {
                 checkCards();
                 let selectCardList = [];
@@ -611,9 +584,6 @@ export default {
                   }
                 });
                 _this.selectCardList = selectCardList;
-                // if (selectCardList.length) {
-                //   _this.$refs.editor.style.transform = `translate3d(${event.page.x + 10}px, ${event.page.y + 10}px, 0)`
-                // }
               });
           },
         },
@@ -662,12 +632,8 @@ export default {
       // 双击页面插入卡片
       .on("doubletap", function (event) {
         if (_this.editCheck) {
-          const newCardX = parseInt(
-            event.x - document.body.clientWidth / 2 + +pagePostion.value.x
-          );
-          const newCardY = parseInt(
-            event.y - document.body.clientHeight / 2 + +pagePostion.value.y
-          );
+          const newCardX = parseInt(event.x - document.body.clientWidth / 2 + +pagePostion.value.x);
+          const newCardY = parseInt(event.y - document.body.clientHeight / 2 + +pagePostion.value.y);
           const card = {
             x: newCardX,
             y: newCardY,
@@ -709,14 +675,11 @@ export default {
             const dom = event.target;
             const cardId = dom.dataset.id;
             _this.cardData[cardId].onChoose = true;
-            _this.cardData[cardId].x = dom.dataset.x;
-            _this.cardData[cardId].y = dom.dataset.y;
-
-            moveCardDelta.value.x = event.clientX - event.x0;
-            moveCardDelta.value.y = event.clientY - event.y0;
-
+            if (_this.moveStep != 0) {
+              _this.cardData[cardId].x = dom.dataset.x - (dom.dataset.x % _this.moveStep);
+              _this.cardData[cardId].y = dom.dataset.y - (dom.dataset.y % _this.moveStep);
+            }
             _this.onMove = true;
-
             // 更新卡片层级
             if (!_this.cardData[cardId].fixed_at) {
               _this.zIndexTemp++;
@@ -727,8 +690,16 @@ export default {
             }
           },
           move(event) {
-            moveCardDelta.value.x = event.clientX - event.x0;
-            moveCardDelta.value.y = event.clientY - event.y0;
+            let tempX = 0, tempY = 0;
+            if (_this.moveStep != 0) {
+              tempX = event.clientX - event.x0 - ((event.clientX - event.x0) % _this.moveStep);
+              tempY = event.clientY - event.y0 - ((event.clientY - event.y0) % _this.moveStep);
+            } else {
+              tempX = event.clientX - event.x0;
+              tempY = event.clientY - event.y0;
+            }
+            moveCardDelta.value.x = tempX;
+            moveCardDelta.value.y = tempY;
           },
           end(event) {
             const dom = event.target;
@@ -758,7 +729,6 @@ export default {
           this.cardData[cardId].onChoose = !this.cardData[cardId].onChoose;
           if (this.cardData[cardId].onChoose) {
             this.selectCardList = [+cardId];
-            // this.$refs.editor.style.transform = `translate3d(${event.x + 10}px, ${event.y + 10}px, 0)`
             this.zIndexTemp++;
             if (!_this.cardData[cardId].fixed_at) {
               this.cardData[cardId].zIndex = this.zIndexTemp;
@@ -766,42 +736,29 @@ export default {
           }
         }
       });
-
     interact(".btn-home").on("tap", (event) => {
       pageJump();
     });
     interact(".btn-jump").on("tap", (event) => {
       pageJump(this.jumpTarget.x * 100, this.jumpTarget.y * 100);
     });
-
     let halfClientWidth = document.body.clientWidth / 2;
     let halfClientHeight = document.body.clientHeight / 2;
-
     // 监听窗口变换
     window.addEventListener("resize", () => {
       halfClientWidth = document.body.clientWidth / 2;
       halfClientHeight = document.body.clientHeight / 2;
     });
-
     const render = () => {
       // 缓动
-      pagePostion.value.x = (
-        +pagePostion.value.x +
-        (lastPagePostion.value.x - moveDelta.value.x - pagePostion.value.x) *
-          0.1
-      ).toFixed(3);
-      pagePostion.value.y = (
-        +pagePostion.value.y +
-        (lastPagePostion.value.y - moveDelta.value.y - pagePostion.value.y) *
-          0.1
-      ).toFixed(3);
+      pagePostion.value.x = (+pagePostion.value.x + (lastPagePostion.value.x - moveDelta.value.x - pagePostion.value.x) * 0.1).toFixed(3);
+      pagePostion.value.y = (+pagePostion.value.y + (lastPagePostion.value.y - moveDelta.value.y - pagePostion.value.y) * 0.1).toFixed(3);
       // 卡片
       this.$refs.cardRef &&
         this.$refs.cardRef.forEach((item, index) => {
           const cardId = item.dataset.id;
           let x = -pagePostion.value.x + +item.dataset.x + halfClientWidth - 10;
-          let y =
-            -pagePostion.value.y + +item.dataset.y + halfClientHeight - 10;
+          let y = -pagePostion.value.y + +item.dataset.y + halfClientHeight - 10;
           const [anchorX, anchorY] = this.cardData[cardId].anchor.split(" ");
           if (anchorX == "center") {
             x -= item.clientWidth / 2;
@@ -813,50 +770,18 @@ export default {
           } else if (anchorY == "bottom") {
             y -= item.clientHeight;
           }
-          // if (anchorX == 'left') {
-          //   x += item.clientWidth / 2
-          // } else if (anchorX == 'right') {
-          //   x -= item.clientWidth / 2
-          // }
-          // if (anchorY == 'top') {
-          //   y += item.clientHeight / 2
-          // } else if (anchorY == 'bottom') {
-          //   y -= item.clientHeight / 2
-          // }
           item.style.transform = `translate3D(${x}px, ${y}px, 0)`;
           if (this.cardData[cardId]?.onChoose && this?.onMove) {
-            this.$refs.cardRef[index].dataset.x =
-              +this.cardData[cardId].x + moveCardDelta.value.x;
-            this.$refs.cardRef[index].dataset.y =
-              +this.cardData[cardId].y + moveCardDelta.value.y;
+            this.$refs.cardRef[index].dataset.x = +this.cardData[cardId].x + moveCardDelta.value.x;
+            this.$refs.cardRef[index].dataset.y = +this.cardData[cardId].y + moveCardDelta.value.y;
           }
         });
-      document.body.style.backgroundPositionX = `${-(
-        pagePostion.value.x % 1920
-      )}px`;
-      document.body.style.backgroundPositionY = `${-(
-        pagePostion.value.y % 809
-      )}px`;
-      // document.querySelector('.test').innerHTML = `
-      //   <p>pagePostionX  ${pagePostion.value.x}</p>
-      //   <p>pagePostionY  ${pagePostion.value.y}</p>
-      //   <p>moveDeltaX  ${moveDelta.value.x}</p>
-      //   <p>moveDeltaY  ${moveDelta.value.y}</p>
-      //   <p>lastPagePostionX  ${lastPagePostion.value.x}</p>
-      //   <p>lastPagePostionY  ${lastPagePostion.value.y}</p>
-      //   <p>showCardList  ${this.showCardList}</p>
-      //   <p>selectCardList ${this.selectCardList}</p>
-      // `
-      document.querySelector(".coordinate").innerHTML = `
-        ${(pagePostion.value.x / 100).toFixed(2)} , ${(
-        pagePostion.value.y / 100
-      ).toFixed(2)}
-      `;
+      document.body.style.backgroundPositionX = `${-(pagePostion.value.x % 1920)}px`;
+      document.body.style.backgroundPositionY = `${-(pagePostion.value.y % 809)}px`;
+      document.querySelector(".coordinate").innerHTML = `${(pagePostion.value.x / 100).toFixed(2)} , ${(pagePostion.value.y / 100).toFixed(2)}`;
       requestAnimationFrame(render);
     };
-
     render();
-
     // 滚动
     document.body.addEventListener("wheel", (e) => {
       if (e.target.nodeName == "INPUT" || e.target.nodeName == "TEXTAREA")
@@ -874,33 +799,19 @@ export default {
           moveDelta.value.y += 50;
         }
       }
-      const urlPosX = (
-        (+lastPagePostion.value.x - moveDelta.value.x) /
-        100
-      ).toFixed(2);
-      const urlPosY = (
-        (+lastPagePostion.value.y - moveDelta.value.y) /
-        100
-      ).toFixed(2);
+      const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2);
+      const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2);
       this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } });
     });
-
     // 判断是否横向滚动
     document.body.addEventListener("keydown", (e) => {
-      if (e.key == "Shift") {
-        this.shiftKey = true;
-      }
+      if (e.key == "Shift") { this.shiftKey = true; }
     });
     document.body.addEventListener("keyup", (e) => {
-      if (e.key == "Shift") {
-        this.shiftKey = false;
-      }
+      if (e.key == "Shift") { this.shiftKey = false; }
     });
-
     // 滚动时判断卡片是否在视野内
-    document.body.addEventListener(
-      "wheel",
-      _.throttle(
+    document.body.addEventListener("wheel", _.throttle(
         async () => {
           await this.getCards(
             parseInt(pagePostion.value.x),
@@ -937,39 +848,22 @@ export default {
         ) {
           showCardList.push(card.id);
         }
-        // if (
-        //   pageX < +card.x + padding + halfScreenWidth + card.width / 2 &&
-        //   pageX > +card.x - padding - halfScreenWidth - card.width / 2 &&
-        //   pageY < +card.y + padding + halfScreenHeight + card.height / 2 &&
-        //   pageY > +card.y - padding - halfScreenHeight - card.height / 2 &&
-        //   card.world == this.world.name
-        // ) {
-        //   showCardList.push(card.id);
-        // }
       });
       this.showCardList = showCardList;
     };
-
     // 页面跳转
     const pageJump = async (x = 0, y = 0) => {
       lastPagePostion.value.x = pagePostion.value.x;
       lastPagePostion.value.y = pagePostion.value.y;
       moveDelta.value.x = +lastPagePostion.value.x - x;
       moveDelta.value.y = +lastPagePostion.value.y - y;
-      const urlPosX = (
-        (+lastPagePostion.value.x - moveDelta.value.x) /
-        100
-      ).toFixed(2);
-      const urlPosY = (
-        (+lastPagePostion.value.y - moveDelta.value.y) /
-        100
-      ).toFixed(2);
+      const urlPosX = ((+lastPagePostion.value.x - moveDelta.value.x) / 100).toFixed(2);
+      const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2);
       this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } });
       await this.getCards(x, y);
       checkCards(x, y);
     };
     this.pageJump = pageJump;
-
     // 初始化
     setTimeout(async () => {
       this.world.name = this.$route.params.world;
@@ -980,10 +874,6 @@ export default {
         pagePostion.value.y = position[1] * 100;
         moveDelta.value.x = -position[0] * 100;
         moveDelta.value.y = -position[1] * 100;
-        // lastPagePostion.value.x = pagePostion.value.x
-        // lastPagePostion.value.y = pagePostion.value.y
-        // moveDelta.value.x = +lastPagePostion.value.x - position[0] * 100
-        // moveDelta.value.y = +lastPagePostion.value.y - position[1] * 100
       }
       // 获取卡片信息
       await this.getCards(pagePostion.value.x, pagePostion.value.y);
@@ -997,20 +887,20 @@ export default {
   <!-- 卡片 -->
   <div id="view" class="w-screen h-screen">
     <TransitionGroup name="card" tag="div">
-    <div
-      v-for="(id, index) in showCardList"
-      :key="cardData[id].id"
-      :data-id="cardData[id].id"
-      :data-index="index"
-      :data-x="cardData[id].x"
-      :data-y="cardData[id].y"
-      :style="{ zIndex: cardData[id].zIndex }"
-      class="card fixed group border-10 border-transparent"
-      ref="cardRef"
-    >
-      <CardDragBar v-if="editCheck" />
-      <CardContent :cardData="cardData[id]" />
-    </div>
+      <div
+        v-for="(id, index) in showCardList"
+        :key="cardData[id].id"
+        :data-id="cardData[id].id"
+        :data-index="index"
+        :data-x="cardData[id].x"
+        :data-y="cardData[id].y"
+        :style="{ zIndex: cardData[id].zIndex }"
+        class="card fixed group border-10 border-transparent"
+        ref="cardRef"
+      >
+        <CardDragBar v-if="editCheck" />
+        <CardContent :cardData="cardData[id]" />
+      </div>
     </TransitionGroup>
   </div>
   <!-- 选框 -->
@@ -1128,23 +1018,14 @@ export default {
     />
   </div>
   <EditorModeBox
+    v-model="moveStep"
     :open-edit="openEdit"
     :edit-check="editCheck"
     @check-edit="checkEdit"
-    @close-edit="
-      editCheck = false;
-      editKey = '';
-    "
+    @close-edit="editCheck = false; editKey = '';"
   />
   <!-- 版权 -->
-  <div class="fixed bottom-4 left-4 text-xs text-zinc-600 z-9999 <md:hidden">
-    <p>
-      © 2017-2022 陆陆侠.
-      <a href="https://beian.miit.gov.cn" target="_blank"
-        >苏ICP备2022014594号</a
-      >
-    </p>
-  </div>
+  <Footer />
 </template>
 
 <style>
@@ -1162,10 +1043,12 @@ body {
   background-image: url("/bg.png");
   background-size: 1920px 809px;
 }
+
 .card-enter-active,
 .card-leave-active {
   transition: opacity 0.1s;
 }
+
 .card-enter-from,
 .card-leave-to {
   opacity: 0;

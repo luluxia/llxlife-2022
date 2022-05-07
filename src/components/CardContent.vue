@@ -15,12 +15,13 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
 </script>
 <template>
   <div
-    v-html="md.render(cardData.content)"
-    class="card-content rounded-sm p-2 border-transparent border-2 space-y-2 w-max transition hover:(!border-black/20)"
+    class="rounded-sm p-2 border-transparent border-2 flex items-center transition hover:(!border-black/20)"
     :class="`
     ${cardData.onChoose ? '!border-black/20' : ''} 
     ${cardData.class}`"
-  ></div>
+  >
+    <div class="card-content space-y-2" v-html="md.render(cardData.content)"></div>
+  </div>
 </template>
 
 <style lang="sass">
@@ -50,8 +51,9 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
     display: block
   h1
     display: inline-block
-    position: relative
-    left: -1em
+    position: absolute
+    left: -0.5em
+    top: 0.5em
     margin: 0
     padding: 0.3em 1em 0.3em 1.1em
     color: #fff
@@ -63,6 +65,8 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
     font-weight: normal
   h2
     font-weight: normal
+  h1+p
+    padding-top: 2em
 .purple
   @include colors(#A39EBC, #857988)
 .blue
@@ -76,10 +80,20 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
 .red
   @include colors(#B48081, #A66869)
 
-.mgame
+.photo
+  background: none
+  h1
+    position: absolute
+    bottom: 1em
+    left: -0.5em
+    top: inherit
   img
-    width: 150px
-    display: block
-    margin: 0 auto
-  text-align: center
+    position: absolute
+    top: 0
+    left: 0
+    width: 100%
+    height: 100%
+    object-fit: cover
+    border-radius: 0.4em
+    z-index: -1
 </style>
