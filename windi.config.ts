@@ -10,6 +10,6 @@ export default defineConfig({
     // range(10, 0, 10).map(i => `bg-opacity-${i}`),
     range(100, 10, 10).map(i => `!w-${i}px`),
     range(100, 10, 10).map(i => `!h-${i}px`),
-    '!md:w-200', '!md:w-140', 'opacity-0', 'opacity-100'
+    '!md:w-200', '!md:w-140', 'opacity-0', 'opacity-100', 'scale-0', 'scale-1'
   ],
 });

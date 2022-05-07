@@ -488,6 +488,8 @@ export default {
           this.cardBlock = [];
           this.editCheck = false;
           this.editKey = "";
+          document.querySelector('#view').classList.add("scale-0");
+          document.querySelector('#view').classList.add("opacity-0");
         }
         this.pageJump(position[0], position[1]);
         this.$router.replace(
@@ -861,6 +863,8 @@ export default {
       const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2);
       this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } });
       await this.getCards(x, y);
+      document.querySelector('#view').classList.remove("scale-0");
+      document.querySelector('#view').classList.remove("opacity-0");
       checkCards(x, y);
     };
     this.pageJump = pageJump;
@@ -885,7 +889,7 @@ export default {
 
 <template>
   <!-- 卡片 -->
-  <div id="view" class="w-screen h-screen">
+  <div id="view" class="w-screen h-screen transform transition duration-300">
     <TransitionGroup name="card" tag="div">
       <div
         v-for="(id, index) in showCardList"
