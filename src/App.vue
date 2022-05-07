@@ -31,6 +31,7 @@ export default {
       shiftKey: false,                  // shift键是否按下
       url: "//hasura.llx.life/api/rest/hanakoi/", // 接口地址
       pageJump: null,                   // 跳转页面函数
+      jumpLoading: false,               // 跳转加载
     };
   },
   components: {
@@ -468,6 +469,8 @@ export default {
     let onSelection = false;
     let haveMoved = false;
     let allCardDom = null;
+    let halfClientWidth = document.body.clientWidth / 2;
+    let halfClientHeight = document.body.clientHeight / 2;
     // 监听路由哈希变化
     window.addEventListener("popstate", () => {
       if (this.$route.hash) {
@@ -488,10 +491,13 @@ export default {
           this.cardBlock = [];
           this.editCheck = false;
           this.editKey = "";
-          document.querySelector('#view').classList.add("scale-0");
-          document.querySelector('#view').classList.add("opacity-0");
+          this.jumpLoading = true;
+          setTimeout(() => {
+            this.pageJump(position[0], position[1]);
+          }, 500);
+        } else {
+          this.pageJump(position[0], position[1]);
         }
-        this.pageJump(position[0], position[1]);
         this.$router.replace(
           `/world/${world}/${(position[0] / 100).toFixed(2)},${(
             position[1] / 100
@@ -503,7 +509,10 @@ export default {
         this.cardBlock = [];
         this.editCheck = false;
         this.editKey = "";
-        this.pageJump(position[0] * 100, position[1] * 100);
+        this.jumpLoading = true;
+        setTimeout(() => {
+          this.pageJump(position[0] * 100, position[1] * 100);
+        }, 500);
       }
     });
     interact("#view")
@@ -667,7 +676,6 @@ export default {
             });
         }
       });
-
     // 卡片拖拽
     interact(".card")
       .draggable({
@@ -744,8 +752,6 @@ export default {
     interact(".btn-jump").on("tap", (event) => {
       pageJump(this.jumpTarget.x * 100, this.jumpTarget.y * 100);
     });
-    let halfClientWidth = document.body.clientWidth / 2;
-    let halfClientHeight = document.body.clientHeight / 2;
     // 监听窗口变换
     window.addEventListener("resize", () => {
       halfClientWidth = document.body.clientWidth / 2;
@@ -825,7 +831,6 @@ export default {
         { trailing: false }
       )
     );
-
     // 是否超出边界
     const checkCards = (
       pageX = pagePostion.value.x,
@@ -863,8 +868,9 @@ export default {
       const urlPosY = ((+lastPagePostion.value.y - moveDelta.value.y) / 100).toFixed(2);
       this.$router.replace({ params: { position: `${urlPosX},${urlPosY}` } });
       await this.getCards(x, y);
-      document.querySelector('#view').classList.remove("scale-0");
-      document.querySelector('#view').classList.remove("opacity-0");
+      setTimeout(() => {
+        this.jumpLoading = false;
+      }, 500);
       checkCards(x, y);
     };
     this.pageJump = pageJump;
@@ -1030,6 +1036,12 @@ export default {
   />
   <!-- 版权 -->
   <Footer />
+  <div
+    class="absolute w-screen h-screen top-0 pointer-events-none transition z-9999 duration-500"
+    :class="jumpLoading ? 'loading-start opacity-100' : 'loading-finish opacity-0'"
+  >
+    <img class="w-full h-full object-cover" src="/loading-bg.png" alt="">
+  </div>
 </template>
 
 <style>
@@ -1056,5 +1068,30 @@ body {
 .card-enter-from,
 .card-leave-to {
   opacity: 0;
+}
+
+@keyframes loading-start {
+  0% {
+    clip-path: circle(0% at 50% 50%);
+  }
+
+  100% {
+    clip-path: circle(75% at 50% 50%);
+  }
+}
+@keyframes loading-finish {
+  0% {
+    clip-path: circle(75% at 50% 50%);
+  }
+
+  100% {
+    clip-path: circle(0% at 50% 50%);
+  }
+}
+.loading-start {
+  animation: loading-start 0.5s;
+}
+.loading-finish {
+  animation: loading-finish 0.5s;
 }
 </style>
