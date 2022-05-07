@@ -404,28 +404,28 @@ export default {
       });
     },
     updateCardPosition(id, x, y) {
-      axios
-        .post(
-          this.url + "card/move",
-          {
-            id: +id,
-            x: parseInt(x),
-            y: parseInt(y),
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              "x-hasura-world": this.$route.params.world,
-              "x-hasura-key": this.editKey,
-            },
-          }
-        )
-        .then((res) => {
-          const returnData = res.data.card;
-          const id = returnData.id;
-          const updated_at = returnData.updated_at;
-          this.cardData[id].updated_at = updated_at;
-        });
+      // axios
+      //   .post(
+      //     this.url + "card/move",
+      //     {
+      //       id: +id,
+      //       x: parseInt(x),
+      //       y: parseInt(y),
+      //     },
+      //     {
+      //       headers: {
+      //         "Content-Type": "application/json",
+      //         "x-hasura-world": this.$route.params.world,
+      //         "x-hasura-key": this.editKey,
+      //       },
+      //     }
+      //   )
+      //   .then((res) => {
+      //     const returnData = res.data.card;
+      //     const id = returnData.id;
+      //     const updated_at = returnData.updated_at;
+      //     this.cardData[id].updated_at = updated_at;
+      //   });
     },
     updateSelectedCardPostion() {
       this.selectCardList.forEach((cardId) => {
